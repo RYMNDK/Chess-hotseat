@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34928.147
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactChess.Server", "ReactChess.Server\ReactChess.Server.csproj", "{9A490C48-52D4-4CAD-B66B-83861D4F83C8}"
+EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "reactchess.client", "reactchess.client\reactchess.client.esproj", "{72C2EBFD-1717-4585-B9F4-E0A652ABB009}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A490C48-52D4-4CAD-B66B-83861D4F83C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A490C48-52D4-4CAD-B66B-83861D4F83C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A490C48-52D4-4CAD-B66B-83861D4F83C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A490C48-52D4-4CAD-B66B-83861D4F83C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72C2EBFD-1717-4585-B9F4-E0A652ABB009}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AE3E5852-2B71-4D81-976D-991715843EA1}
+	EndGlobalSection
+EndGlobal
