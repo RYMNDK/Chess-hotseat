@@ -1,0 +1,15 @@
+/* those 3 could be useful later */
+.cellSelected {
+    font-weight: bolder;
+    color: gold;
+    mix-blend-mode: lighten;
+}
+.statusLine {
+    float: left;
+    width: 640px;
+    background-color: #fff;
+}
+.comment {
+    font-size: xx-large;
+    font-style: italic;
+}

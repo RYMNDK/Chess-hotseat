@@ -1,0 +1,28 @@
+.GameAlerts {
+    color: red;
+    min-height: 30;
+    max-width: 30;
+}
+
+.main {
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    height: 100vh;
+}
+
+.left {
+    width: 750px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.right {
+    width: 35%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.GameAlerts {
+    min-height: 1.5em;
+}
