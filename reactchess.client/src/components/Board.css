@@ -28,3 +28,9 @@
 .chess-square.black {
     background-color: #b58863;
 }
+
+/* highlight a square for potential move */
+.chess-square.highlight {
+    font-weight: bolder;
+    color: gold;
+}

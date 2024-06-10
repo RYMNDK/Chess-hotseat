@@ -1,8 +1,4 @@
-interface PieceProps {
-    row: number;
-    col: number;
-    piece: string;
-}
+import "./Piece.css";
 
 // transforms FEN letter to piece
 const renderMap = (letter: string): string => {
@@ -24,9 +20,18 @@ const renderMap = (letter: string): string => {
     return map[letter] || " ";
 };
 
-const Piece: React.FC<PieceProps> = ({ row, col, piece }) => {
+interface PieceProps {
+    row: number;
+    col: number;
+    piece: string;
+    isSelected: boolean;
+}
+const Piece: React.FC<PieceProps> = ({ row, col, piece, isSelected }) => {
     return (
-        <div id={`${row}|${col}`} className="Piece">
+        <div
+            id={`${row}|${col}`}
+            className={`Piece ${isSelected ? "highlight" : ""}`}
+        >
             {renderMap(piece)}
         </div>
     );

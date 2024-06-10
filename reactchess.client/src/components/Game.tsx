@@ -1,12 +1,36 @@
-import React, { useState } from "react";
+import { useReducer, useState } from "react";
 
 import Board from "./Board";
 import "./Game.css";
 
+// comment those two for fresh board FEN
+const initialBoard: ChessBoard = [
+    ["r", "n", "b", "q", "k", "b", "n", "r"],
+    ["p", "p", "p", "p", "p", "p", "p", "p"],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    [" ", " ", " ", " ", " ", " ", " ", " "],
+    ["P", "P", "P", "P", "P", "P", "P", "P"],
+    ["R", "N", "B", "Q", "K", "B", "N", "R"],
+];
+const emptyBoard: ChessBoard = Array.from({ length: 8 }, () =>
+    Array(8).fill(" ")
+);
+
+type Action = MovePieceAction;
+interface MovePieceAction {
+    type: "MOVE_PIECE";
+}
+
+const reduceHistory = (prevHistory: string[], action: Action): string[] => {
+    return prevHistory;
+};
+
 const Game: React.FC = () => {
     const [isWhiteTurn, setIsWhiteTurn] = useState(true);
     const [message, setMessage] = useState("");
-    // const [moves, setMoves] = useState([]:Array<string>);
+    const [history, updateHistory] = useReducer(reduceHistory, []);
 
     const MockFEN: string =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -14,7 +38,11 @@ const Game: React.FC = () => {
     return (
         <div className="main">
             <div className="left">
-                <Board />
+                <Board
+                    boardSetup={initialBoard}
+                    // use this to update the move history
+                    updateMoves={() => setMessage("Check!")}
+                />
             </div>
             <div className="right">
                 <h1>{isWhiteTurn ? "White" : "Black"} to play</h1>
