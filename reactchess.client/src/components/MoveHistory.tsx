@@ -1,16 +1,14 @@
+import { Action } from "../types/chessType";
+
 interface MoveHistoryProps {
     moveList: string[];
     updateMoveList: React.Dispatch<Action>;
 }
 
-type Action = UndoPieceAction;
-interface UndoPieceAction {
-    type: "UNDO_PIECE";
-}
-
 const MoveHistory: React.FC<MoveHistoryProps> = ({
     moveList,
     updateMoveList,
+    h,
 }) => {
     // undo a move
     const onUndoClick = (): void => {
@@ -20,6 +18,7 @@ const MoveHistory: React.FC<MoveHistoryProps> = ({
     return (
         <>
             <div>
+                <p>{h}</p>
                 <h3>MoveHistory</h3>
                 <ol>
                     {moveList.map((move, index) => (

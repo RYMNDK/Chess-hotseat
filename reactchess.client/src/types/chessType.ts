@@ -29,3 +29,16 @@ export class Cell {
 }
 
 export type ChessBoard = string[][];
+
+export type Action = MovePieceAction | UndoPieceAction;
+interface MovePieceAction {
+    type: "MOVE_PIECE";
+    payload: {
+        piece: string;
+        from: Cell;
+        to: Cell;
+    };
+}
+interface UndoPieceAction {
+    type: "UNDO_PIECE";
+}

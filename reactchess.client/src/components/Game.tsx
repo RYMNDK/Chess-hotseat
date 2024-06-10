@@ -1,6 +1,6 @@
 import { useReducer, useState } from "react";
 
-import { ChessBoard, Cell } from "../types/chessType";
+import { ChessBoard, Action } from "../types/chessType";
 
 import Board from "./Board";
 import "./Game.css";
@@ -22,21 +22,12 @@ const emptyBoard: ChessBoard = Array.from({ length: 8 }, () =>
     Array(8).fill(" ")
 );
 
-type Action = MovePieceAction;
-interface MovePieceAction {
-    type: "MOVE_PIECE";
-    payload: {
-        piece: string;
-        from: Cell;
-        to: Cell;
-    };
-}
-
 const reduceHistory = (prevHistory: string[], action: Action): string[] => {
+    console.log("Update history");
     switch (action.type) {
         case "MOVE_PIECE":
-            prevHistory.push("added a move!");
-            return prevHistory;
+            // modify the action
+            return [...prevHistory, "a new move added"];
         default:
             return prevHistory;
     }
@@ -50,6 +41,14 @@ const Game: React.FC = () => {
 
     const MockFEN: string =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    const resetBoard = () => {
+        setMessage("");
+        // clear the board
+        // clear move history
+    };
+
+    // parse FEN here, initialize FEN variables
 
     return (
         <div className="main">
@@ -100,9 +99,7 @@ const Game: React.FC = () => {
                     updateMoveList={updateHistory}
                 />
 
-                {/*
-                    I want to start a new game without refreshing the page.
-                */}
+                <button onClick={resetBoard}>New game</button>
             </div>
         </div>
     );

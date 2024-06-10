@@ -119,8 +119,6 @@ const Board: React.FC<BoardProps> = ({ boardSetup, updateMoveList }) => {
                     ))}
                 </div>
             ))}
-
-            {/* <button onClick={updateMoveList}>Click me</button> */}
         </div>
     );
 };
