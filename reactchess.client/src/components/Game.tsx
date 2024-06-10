@@ -1,9 +1,13 @@
 import { useReducer, useState } from "react";
 
+import { ChessBoard, Cell } from "../types/chessType";
+
 import Board from "./Board";
 import "./Game.css";
+import MoveHistory from "./MoveHistory";
 
 // comment those two for fresh board FEN
+
 const initialBoard: ChessBoard = [
     ["r", "n", "b", "q", "k", "b", "n", "r"],
     ["p", "p", "p", "p", "p", "p", "p", "p"],
@@ -21,14 +25,26 @@ const emptyBoard: ChessBoard = Array.from({ length: 8 }, () =>
 type Action = MovePieceAction;
 interface MovePieceAction {
     type: "MOVE_PIECE";
+    payload: {
+        piece: string;
+        from: Cell;
+        to: Cell;
+    };
 }
 
 const reduceHistory = (prevHistory: string[], action: Action): string[] => {
-    return prevHistory;
+    switch (action.type) {
+        case "MOVE_PIECE":
+            prevHistory.push("added a move!");
+            return prevHistory;
+        default:
+            return prevHistory;
+    }
 };
 
 const Game: React.FC = () => {
     const [isWhiteTurn, setIsWhiteTurn] = useState(true);
+    // other FEN related fields goes here
     const [message, setMessage] = useState("");
     const [history, updateHistory] = useReducer(reduceHistory, []);
 
@@ -40,8 +56,7 @@ const Game: React.FC = () => {
             <div className="left">
                 <Board
                     boardSetup={initialBoard}
-                    // use this to update the move history
-                    updateMoves={() => setMessage("Check!")}
+                    updateMoveList={updateHistory}
                 />
             </div>
             <div className="right">
@@ -50,7 +65,7 @@ const Game: React.FC = () => {
                     {message}
                 </h2>
                 <div>
-                    {/* optional, add a + in the move history*/}
+                    {/* add a + in the move history*/}
                     <button
                         className="CheckButton"
                         onClick={() => setMessage("Check!")}
@@ -80,14 +95,10 @@ const Game: React.FC = () => {
                     <button onClick={() => {}}>Long Castle</button>
                 </div>
 
-                {/* <label>Move History</label>
-            <ol>
-            {moves.map((element, index) => (
-                <li key={index}>{element}</li>
-                ))}
-                </ol> 
-                                    <button>Undo</button>
-                */}
+                <MoveHistory
+                    moveList={history}
+                    updateMoveList={updateHistory}
+                />
 
                 {/*
                     I want to start a new game without refreshing the page.

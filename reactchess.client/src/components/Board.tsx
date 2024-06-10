@@ -45,21 +45,6 @@ const reduceBoard = (prevState: ChessBoard, action: Action): ChessBoard => {
     }
 };
 
-// interface UndoPieceAction {
-//     type: "UNDO_PIECE";
-//     payload: {
-//         from: Cell;
-//         to: Cell;
-//     };
-// }
-// interface AddPieceAction {
-//     type: "ADD_PIECE";
-//     payload: {
-//         from: Cell;
-//         to: Cell;
-//     };
-// }
-
 type Action = MovePieceAction;
 interface MovePieceAction {
     type: "MOVE_PIECE";
@@ -73,27 +58,33 @@ interface MovePieceAction {
 // string works, but better if use color and piece
 type Hand = { cell: Cell; piece: string };
 
-type FENString = string;
-
-// // change this to FEN String, parse before set up board
-// interface BoardProps {
-//     boardSetup: ChessBoard;
-// }
-const Board: React.FC = ({ boardSetup, updateMoves }) => {
+// change this to FEN String, parse before set up board
+interface BoardProps {
+    boardSetup: ChessBoard;
+    updateMoveList: React.Dispatch<Action>;
+}
+const Board: React.FC<BoardProps> = ({ boardSetup, updateMoveList }) => {
     const [board, updateBoard] = useReducer(reduceBoard, boardSetup); // initial should be set to initialSetup
     const [hand, setHand] = useState<Hand | null>(null);
+    // list of available moves here, array of cells
 
+    // handle board click
     const onBoardClick = (location: Cell): void => {
         if (!hand && location.piece(board) !== " ") {
             // show potential moves here
             setHand({ cell: location, piece: location.piece(board) }); // highlight the piece
         } else if (hand) {
             // move validation goes here
-            updateBoard({
+            const action: Action = {
                 type: "MOVE_PIECE",
                 payload: { piece: hand.piece, from: hand.cell, to: location },
-            });
-            setHand(null); // unhighlight the piece
+            };
+            // add the move to the game state
+            updateMoveList(action);
+            // move the piece and clear hand
+            updateBoard(action);
+
+            setHand(null);
         } else {
             setHand(null); // unhighlight the piece
         }
@@ -129,7 +120,7 @@ const Board: React.FC = ({ boardSetup, updateMoves }) => {
                 </div>
             ))}
 
-            <button onClick={updateMoves}>Click me</button>
+            {/* <button onClick={updateMoveList}>Click me</button> */}
         </div>
     );
 };
