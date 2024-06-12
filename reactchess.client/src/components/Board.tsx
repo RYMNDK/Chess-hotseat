@@ -1,103 +1,83 @@
+import { Action, Cell, Hand } from "../types/chessType";
 import { useReducer, useState } from "react";
 import "./Board.css";
-import Piece from "./Piece";
+import RenderPiece from "./RenderPiece";
 
-type ChessBoard = string[][];
-
-class Cell {
-    private row: number;
-    private col: number;
-
-    constructor(row: number, col: number) {
-        this.row = row;
-        this.col = col;
-    }
-
-    remove(board: ChessBoard): void {
-        board[this.row][this.col] = " ";
-    }
-
-    assign(board: ChessBoard, piece: string): void {
-        board[this.row][this.col] = piece;
-    }
-
-    piece(board: ChessBoard): string {
-        return board[this.row][this.col];
-    }
-
-    equals(other: Cell | null): boolean {
-        return other?.row === this.row && other?.col === this.col;
-    }
-
-    toString(): string {
-        return `${this.row}|${this.col}`;
-    }
-}
-
-const reduceBoard = (prevState: ChessBoard, action: Action): ChessBoard => {
+const reduceBoard = (prevState: string[][], action: Action): string[][] => {
     switch (action.type) {
-        case "MOVE_PIECE":
-            action.payload.from.remove(prevState);
-            action.payload.to.assign(prevState, action.payload.piece);
-            return prevState;
+        case "MOVE_PIECE": {
+            const newState = prevState.map((row) => row.slice());
+
+            const piece: string =
+                prevState[action.payload.from.getRow()][
+                    action.payload.from.getCol()
+                ];
+            newState[action.payload.to.getRow()][action.payload.to.getCol()] =
+                piece;
+            newState[action.payload.from.getRow()][
+                action.payload.from.getCol()
+            ] = " ";
+
+            return newState;
+        }
+
         default:
             return prevState;
     }
 };
 
-type Action = MovePieceAction;
-interface MovePieceAction {
-    type: "MOVE_PIECE";
-    payload: {
-        piece: string;
-        from: Cell;
-        to: Cell;
-    };
-}
-
-// string works, but better if use color and piece
-type Hand = { cell: Cell; piece: string };
-
-// change this to FEN String, parse before set up board
+// Take in board
 interface BoardProps {
-    boardSetup: ChessBoard;
+    boardSetup: string[][];
     updateMoveList: React.Dispatch<Action>;
+    // undo here
 }
 const Board: React.FC<BoardProps> = ({ boardSetup, updateMoveList }) => {
     const [board, updateBoard] = useReducer(reduceBoard, boardSetup); // initial should be set to initialSetup
-    const [hand, setHand] = useState<Hand | null>(null);
-    // list of available moves here, array of cells
+    const [hand, setHand] = useState<Hand>(null);
+    // add a state to resolve undo
 
     // handle board click
     const onBoardClick = (location: Cell): void => {
-        if (!hand && location.piece(board) !== " ") {
-            // show potential moves here
-            setHand({ cell: location, piece: location.piece(board) }); // highlight the piece
-        } else if (hand) {
-            // move validation goes here
-            const action: Action = {
-                type: "MOVE_PIECE",
-                payload: { piece: hand.piece, from: hand.cell, to: location },
-            };
-            // add the move to the game state
-            updateMoveList(action);
-            // move the piece and clear hand
-            updateBoard(action);
+        console.log(location);
+        console.log(location.toString());
 
+        if (!hand && location.getPiece() !== " ") {
+            // show potential moves here
+            setHand(location); // highlight the piece
+        } else if (hand && !location.equals(hand)) {
+            // move validation goes here
+            // put down the piece on invalid move
+            handleMove({
+                type: "MOVE_PIECE",
+                payload: {
+                    from: hand,
+                    to: location,
+                },
+            });
             setHand(null);
         } else {
-            setHand(null); // unhighlight the piece
+            setHand(null);
         }
     };
+
+    const handleMove = async (action: Action): Promise<void> => {
+        // add to move history, then update board
+        await updateMoveList(action);
+        updateBoard(action);
+    };
+
     return (
         <div className="board">
-            {board.map((row, rowIndex) => (
+            {board.map((row: string[], rowIndex: number) => (
                 <div key={rowIndex} className="chess-row">
                     {row.map((piece: string, colIndex: number) => (
                         <div
-                            key={`${rowIndex}-${colIndex}`}
+                            key={colIndex}
                             onClick={() =>
-                                onBoardClick(new Cell(rowIndex, colIndex))
+                                onBoardClick(
+                                    new Cell(colIndex, rowIndex, piece)
+                                )
                             }
                             className={`chess-square ${
                                 (rowIndex + colIndex) % 2 === 0
@@ -105,15 +85,9 @@ const Board: React.FC<BoardProps> = ({ boardSetup, updateMoveList }) => {
                                     : "black"
                             }`}
                         >
-                            <Piece
-                                row={rowIndex}
-                                col={colIndex}
-                                piece={piece}
-                                isSelected={
-                                    hand?.cell.equals(
-                                        new Cell(rowIndex, colIndex)
-                                    ) ?? false
-                                }
+                            <RenderPiece
+                                location={new Cell(colIndex, rowIndex, piece)}
+                                hand={hand}
                             />
                         </div>
                     ))}

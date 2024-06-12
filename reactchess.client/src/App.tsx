@@ -4,7 +4,6 @@ import ChessBoardComponent from "./components/ChessBoardComponent";
 function App() {
     return (
         <>
-            <ChessBoardComponent />
             <Game />
         </>
     );

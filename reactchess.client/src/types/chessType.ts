@@ -1,40 +1,52 @@
 export class Cell {
     private row: number;
     private col: number;
+    private piece: string;
 
-    constructor(row: number, col: number) {
-        this.row = row;
+    public static letters: string = "abcdefgh";
+
+    // map the cell from table to array
+    constructor(col: number, row: number, piece: string) {
         this.col = col;
+        this.row = row;
+        this.piece = piece;
     }
 
-    remove(board: ChessBoard): void {
-        board[this.row][this.col] = " ";
+    getRow(): number {
+        return this.row;
+    }
+    getCol(): number {
+        return this.col;
+    }
+    removePiece(): void {
+        this.piece = " ";
+    }
+    assignPiece(piece: string): void {
+        this.piece = piece;
     }
 
-    assign(board: ChessBoard, piece: string): void {
-        board[this.row][this.col] = piece;
-    }
-
-    piece(board: ChessBoard): string {
-        return board[this.row][this.col];
+    getPiece(): string {
+        return this.piece;
     }
 
     equals(other: Cell | null): boolean {
         return other?.row === this.row && other?.col === this.col;
     }
 
+    // from A1 to H8
     toString(): string {
-        return `${this.row}|${this.col}`;
+        return `${Cell.letters[this.col]}${8 - this.row}`;
     }
 }
 
-export type ChessBoard = string[][];
+export type Action = RenderAction | UndoPieceAction | ClearBoardAction;
 
-export type Action = MovePieceAction | UndoPieceAction;
+// moves that should be rendered in history
+export type RenderAction = MovePieceAction;
+
 interface MovePieceAction {
     type: "MOVE_PIECE";
     payload: {
-        piece: string;
         from: Cell;
         to: Cell;
     };
@@ -42,3 +54,18 @@ interface MovePieceAction {
 interface UndoPieceAction {
     type: "UNDO_PIECE";
 }
+interface ClearBoardAction {
+    type: "CLEAR_BOARD";
+}
+export type Hand = Cell | null;
+
+export interface ChessGameState {
+    chessboard: Chessboard;
+    activeColor: string;
+    castlingAvailability: string;
+    enPassantTarget: string;
+    halfmoveClock: number;
+    fullmoveNumber: number;
+}
+
+export type Chessboard = string[][];
