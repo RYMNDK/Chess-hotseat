@@ -39,9 +39,6 @@ const Board: React.FC<BoardProps> = ({ boardSetup, updateMoveList }) => {
 
     // handle board click
     const onBoardClick = (location: Cell): void => {
-        console.log(location);
-        console.log(location.toString());
-
         if (!hand && location.getPiece() !== " ") {
             // show potential moves here
             setHand(location); // highlight the piece

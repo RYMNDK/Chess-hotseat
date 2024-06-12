@@ -71,7 +71,19 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
         case "MOVE_PIECE":
             return [...prevHistory, action];
         case "UNDO_PIECE":
-            return prevHistory.slice(0, -1);
+            // todo
+            return prevHistory;
+        case "CHECK_ACTION": {
+            if (prevHistory.length > 0) {
+                const lastAction: RenderAction = prevHistory[
+                    prevHistory.length - 1
+                ] as RenderAction;
+                lastAction.payload.denote = "+";
+                return prevHistory.slice(0, -1).concat(lastAction);
+            } else {
+                return prevHistory;
+            }
+        }
         case "CLEAR_BOARD":
             return [];
         default:
@@ -102,6 +114,13 @@ const Game: React.FC = () => {
     };
     const renderActions = history.filter(isRenderAction);
 
+    const onClickCheck = () => {
+        setMessage("Check!");
+        updateHistory({
+            type: "CHECK_ACTION",
+        });
+    };
+
     const onClickResetBoard = () => {
         setMessage("");
         updateHistory({
@@ -121,10 +140,9 @@ const Game: React.FC = () => {
                     {message}
                 </h2>
                 <div>
-                    {/* add a + in the move history*/}
                     <button
                         className="CheckButton"
-                        onClick={() => setMessage("Check!")}
+                        onClick={() => onClickCheck()}
                     >
                         Check!
                     </button>

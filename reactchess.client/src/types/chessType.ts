@@ -39,7 +39,11 @@ export class Cell {
     }
 }
 
-export type Action = RenderAction | UndoPieceAction | ClearBoardAction;
+export type Action =
+    | RenderAction
+    | CheckAction
+    | UndoPieceAction
+    | ClearBoardAction;
 
 // moves that should be rendered in history
 export type RenderAction = MovePieceAction;
@@ -49,11 +53,16 @@ interface MovePieceAction {
     payload: {
         from: Cell;
         to: Cell;
+        denote: string | null;
     };
 }
 interface UndoPieceAction {
     type: "UNDO_PIECE";
 }
+interface CheckAction {
+    type: "CHECK_ACTION";
+}
+// checkmate, forfeit
 interface ClearBoardAction {
     type: "CLEAR_BOARD";
 }

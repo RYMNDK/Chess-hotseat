@@ -14,7 +14,7 @@ const parse = (halfMove: RenderAction): string => {
             const piece: string = payload.from.getPiece().toUpperCase();
             return `${piece !== "P" ? piece : ""}${payload.from.toString()}${
                 payload.to.getPiece() === " " ? "-" : "x"
-            }${payload.to.toString()}`;
+            }${payload.to.toString()}${payload.denote ?? ""}`;
         }
         default:
             // for debugging
@@ -37,7 +37,7 @@ const MoveHistory: React.FC<MoveHistoryProps> = ({
             fullMoves.push(
                 `${parse(halfMoveAction[i])}${
                     i + 1 < halfMoveAction.length
-                        ? " " + parse(halfMoveAction[i + 1])
+                        ? "\t" + parse(halfMoveAction[i + 1])
                         : ""
                 }`
             );
