@@ -30,8 +30,8 @@ const RenderPiece: React.FC<RenderPieceProps> = ({ location, hand }) => {
     return (
         <div
             id={location.toString()}
-            className={`Piece ${
-                hand != null && hand.equals(location) ? "highlight" : ""
+            className={`Piece${
+                hand != null && hand.equals(location) ? " highlight" : ""
             }`}
         >
             {renderMap(location.getPiece())}

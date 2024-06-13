@@ -1,6 +1,0 @@
-@ReactChess.Server_HostAddress = http://localhost:5191
-
-GET {{ReactChess.Server_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

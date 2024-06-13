@@ -1,11 +1,10 @@
 import { useReducer, useState } from "react";
 
 import {
-    // ChessBoard,
     Action,
     RenderAction,
-    // Cell,
     ChessGameState,
+    Chessboard,
 } from "../types/chessType";
 
 import "./Game.css";
@@ -26,8 +25,6 @@ import MoveHistory from "./MoveHistory";
 // const emptyBoard: string[][] = Array.from({ length: 8 }, () =>
 //     Array(8).fill(" ")
 // );
-
-type Chessboard = string[][];
 
 const parseFEN = (fen: string): ChessGameState => {
     const [
@@ -66,6 +63,33 @@ const parseFEN = (fen: string): ChessGameState => {
     };
 };
 
+const genFEN = (gameState: ChessGameState): string => {
+    return "todo:";
+};
+
+const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
+    switch (action.type) {
+        case "MOVE_PIECE": {
+            const newState = prevState.map((row) => row.slice());
+
+            const piece: string =
+                prevState[action.payload.from.getRow()][
+                    action.payload.from.getCol()
+                ];
+            newState[action.payload.to.getRow()][action.payload.to.getCol()] =
+                piece;
+            newState[action.payload.from.getRow()][
+                action.payload.from.getCol()
+            ] = " ";
+
+            return newState;
+        }
+
+        default:
+            return prevState;
+    }
+};
+
 const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
     switch (action.type) {
         case "MOVE_PIECE":
@@ -92,27 +116,38 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
 };
 
 const Game: React.FC = () => {
+    // FEN should be passed in as a prop
+    // FEN does not detect draws, nor have commments
     const MockFEN: string =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq e3 0 1";
-    const state = parseFEN(MockFEN);
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const gameState: ChessGameState = parseFEN(MockFEN);
 
-    const BoardCells: string[][] = state.chessboard;
+    const [board, updateBoard] = useReducer(reduceBoard, gameState.chessboard);
+    const [isWhiteTurn, setIsWhiteTurn] = useState(
+        gameState.activeColor == "w"
+    );
+    // invalidate castle available when its not available
+    const [castleAvailable, setCastleAvailable] = useState(
+        gameState.castlingAvailability
+    );
+    const [enPassant, setEnpassant] = useState(gameState.enPassantTarget);
 
-    const [isWhiteTurn, setIsWhiteTurn] = useState(true);
-    // other FEN related fields goes here
+    const [halfMove, setHalfMove] = useState(gameState.halfmoveClock);
+
+    const [fullMove, setFullMove] = useState(gameState.fullmoveNumber);
+
     const [message, setMessage] = useState("");
     const [history, updateHistory] = useReducer(reduceHistory, []);
 
+    // does not detect stalemate
+
     // get a state to take back the last move
 
-    const isRenderAction = (action: Action): action is RenderAction => {
-        return (
-            action.type === "MOVE_PIECE" //||
-            // action.type === "PAWN_PROMOTION" ||
-            // action.type === "EN_PASSANT"
-        );
-    };
-    const renderActions = history.filter(isRenderAction);
+    const renderActions = history.filter(
+        (action: Action): action is RenderAction => {
+            return action.type === "MOVE_PIECE";
+        }
+    );
 
     const onClickCheck = () => {
         setMessage("Check!");
@@ -132,7 +167,11 @@ const Game: React.FC = () => {
     return (
         <div className="main">
             <div className="left">
-                <Board boardSetup={BoardCells} updateMoveList={updateHistory} />
+                <Board
+                    board={board}
+                    updateBoard={updateBoard}
+                    updateHistory={updateHistory}
+                />
             </div>
             <div className="right">
                 <h1>{isWhiteTurn ? "White" : "Black"} to play</h1>
@@ -164,10 +203,23 @@ const Game: React.FC = () => {
                     {/*
                         on clicking castle push the notation into history and 
                     */}
-                    <button onClick={() => {}}>En Passant</button>
+                    <button onClick={() => {}}>
+                        En Passant at {enPassant}
+                    </button>
                     <button onClick={() => {}}>Promotion</button>
-                    <button onClick={() => {}}>Short Castle</button>
-                    <button onClick={() => {}}>Long Castle</button>
+                    <button onClick={() => {}}>
+                        White Short Castle {castleAvailable.includes("K")}
+                    </button>
+                    <button onClick={() => {}}>
+                        White Long Castle {castleAvailable.includes("Q")}
+                    </button>
+                    <button onClick={() => {}}>
+                        Black Short Castle {castleAvailable.includes("k")}
+                    </button>
+                    <button onClick={() => {}}>
+                        Black Long Castle {castleAvailable.includes("q")}
+                    </button>
+                    {/* manually add a piece on the board */}
                     <button onClick={() => {}}>Add piece</button>
                 </div>
 

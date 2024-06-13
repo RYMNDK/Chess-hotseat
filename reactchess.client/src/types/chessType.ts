@@ -29,6 +29,33 @@ export class Cell {
         return this.piece;
     }
 
+    getPieceFromBoard(board: Chessboard): string {
+        return board[this.row][this.col];
+    }
+
+    canMove(other: Cell, board: Chessboard): boolean {
+        // if the other cell is not on the board then false.
+        if (other.col < 0 || other.col > 7 || other.row < 0 || other.row > 7) {
+            return false;
+        }
+
+        // moving onto your own piece is not allowed
+        const isUpperCase = (char: string) => char >= "A" && char <= "Z";
+        const isLowerCase = (char: string) => char >= "a" && char <= "z";
+
+        return (
+            board[other.row][other.col] === " " ||
+            !(
+                (isUpperCase(this.piece) &&
+                    isUpperCase(board[other.row][other.col])) ||
+                (isLowerCase(this.piece) &&
+                    isLowerCase(board[other.row][other.col]))
+            )
+        );
+
+        // edge case: Thinking about it.
+    }
+
     equals(other: Cell | null): boolean {
         return other?.row === this.row && other?.col === this.col;
     }
@@ -78,3 +105,8 @@ export interface ChessGameState {
 }
 
 export type Chessboard = string[][];
+
+export type Direction = {
+    col: number;
+    row: number;
+};
