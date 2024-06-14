@@ -117,7 +117,7 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
 
 const Game: React.FC = () => {
     // FEN should be passed in as a prop
-    // FEN does not detect draws, nor have commments
+    // FEN does not detect draws, nor have comments
     const MockFEN: string =
         "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     const gameState: ChessGameState = parseFEN(MockFEN);

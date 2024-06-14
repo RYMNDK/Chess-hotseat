@@ -12,7 +12,6 @@
 .chess-row {
     display: flex;
     flex: 1;
-    border: 1px solid black;
 }
 
 .chess-square {
@@ -20,7 +19,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid black;
 }
 
 .chess-square.white {
@@ -33,5 +31,4 @@
 
 .chess-square.potential-move {
     background-color: lightgray;
-    border: 1px solid red;
 }
