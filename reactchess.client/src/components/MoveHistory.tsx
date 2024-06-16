@@ -1,12 +1,6 @@
-import { Action, RenderAction } from "../types/chessType";
+import { RenderAction } from "../types/chessType";
 
-interface MoveHistoryProps {
-    moveList: RenderAction[];
-    updateMoveList: React.Dispatch<Action>;
-}
-
-// Long algebraic notation
-// ["e2-e4 Nf8-g6", (other moves)]
+// Long algebraic notation ["e2-e4 Nf8-g6"]
 const parse = (halfMove: RenderAction): string => {
     switch (halfMove.type) {
         case "MOVE_PIECE": {
@@ -17,20 +11,17 @@ const parse = (halfMove: RenderAction): string => {
             }${payload.to.toString()}${payload.denote ?? ""}`;
         }
         default:
-            // for debugging
             return "bad move";
     }
 };
 
+interface MoveHistoryProps {
+    moveList: RenderAction[];
+}
+
 const MoveHistory: React.FC<MoveHistoryProps> = ({
-    moveList,
-    updateMoveList,
+    moveList
 }) => {
-    // const onUndoClick = (): void => {
-    //     updateMoveList({
-    //         type: "UNDO_PIECE",
-    //     });
-    // };
     const renderFullMoves = (halfMoveAction: RenderAction[]): string[] => {
         const fullMoves: Array<string> = [];
         for (let i: number = 0; i < halfMoveAction.length; i += 2) {
@@ -56,8 +47,6 @@ const MoveHistory: React.FC<MoveHistoryProps> = ({
                     <li key={index}>{line}</li>
                 ))}
             </ol>
-            {/* <button onClick={onUndoClick}>Undo a move</button> */}
-            {/* // move history // some list here in half moves*/}
         </div>
     );
 };

@@ -1,9 +1,7 @@
 import { Cell, Hand } from "../types/chessType";
 import "./RenderPiece.css";
 
-// render the piece
 const renderMap = (cellString: string): string => {
-    // map the piece to the emoji icon
     const map: { [key: string]: string } = {
         R: "♖",
         N: "♘",

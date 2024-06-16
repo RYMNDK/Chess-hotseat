@@ -20,7 +20,6 @@ const moveInDirections = (
 
             if (cell.canMove(next, board)) {
                 availableCells.push(next);
-                // can't hop over pieces
                 if (board[next.getRow()][next.getCol()] !== " ") {
                     break;
                 }
@@ -31,7 +30,7 @@ const moveInDirections = (
     }
 };
 
-const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
+const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
     let availableCells: Cell[] = [];
 
     switch (cell.getPiece().toUpperCase()) {
@@ -60,8 +59,6 @@ const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
             availableCells.push(
                 new Cell(cell.getCol() - 1, cell.getRow() - 1, " ")
             );
-
-            // push in 2 castle squares (use canCastle function)
 
             availableCells = availableCells.filter((other) =>
                 cell.canMove(other, board)
@@ -136,7 +133,6 @@ const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
             break;
         }
         default: {
-            // add the en passant square when eligible
             console.log(cell);
 
             if (cell.getPiece() == "p") {
@@ -189,40 +185,23 @@ const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
         }
     }
 
-    // do a check for after move (The king must not be in check after moving, etc.)
     return availableCells;
 };
 
-// check is king is in check, this should be done after a move
-
-// Take in board
 interface BoardProps {
     board: Chessboard;
     updateBoard: React.Dispatch<Action>;
     updateHistory: React.Dispatch<Action>;
-    // pass in other states
-    // pass in undo
 }
 const Board: React.FC<BoardProps> = ({ board, updateBoard, updateHistory }) => {
-    // const [board, updateBoard] = useReducer(reduceBoard, boardSetup); // initial should be set to initialSetup
     const [hand, setHand] = useState<Hand>(null);
-    const [legalMoves, setLegalMoves] = useState<Cell[]>([]);
-    // need to remove legal squares that are invalid AFTER piece move
-    // add a cell for Algebraic -> Cell (for en passant)
+    const [moves, setMoves] = useState<Cell[]>([]);
 
-    // add a state to resolve undo
-
-    // handle board click
     const onBoardClick = (location: Cell): void => {
-        // console.log(location);
         if (!hand && location.getPiece() !== " ") {
-            // pass in en passant and castle available after
-            setLegalMoves(getLegalMoves(location, board));
-            setHand(location); // highlight the piece
+            setMoves(getMoves(location, board));
+            setHand(location); 
         } else if (hand && !location.equals(hand)) {
-            // move validation goes here
-            // put down the piece on invalid move
-            // update state after move (en passant/castle)
             handleMove({
                 type: "MOVE_PIECE",
                 payload: {
@@ -232,15 +211,14 @@ const Board: React.FC<BoardProps> = ({ board, updateBoard, updateHistory }) => {
                 },
             });
             setHand(null);
-            setLegalMoves([]);
+            setMoves([]);
         } else {
             setHand(null);
-            setLegalMoves([]);
+            setMoves([]);
         }
     };
 
     const handleMove = async (action: Action): Promise<void> => {
-        // add to move history, then update board
         await updateHistory(action);
         updateBoard(action);
     };
@@ -258,7 +236,7 @@ const Board: React.FC<BoardProps> = ({ board, updateBoard, updateHistory }) => {
                                 )
                             }
                             className={`chess-square ${
-                                legalMoves.some((cell: Cell) =>
+                                moves.some((cell: Cell) =>
                                     cell.equals(
                                         new Cell(colIndex, rowIndex, " ")
                                     )
