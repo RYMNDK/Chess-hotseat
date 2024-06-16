@@ -33,7 +33,6 @@ const moveInDirections = (
 
 const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
     let availableCells: Cell[] = [];
-    // const potential: Cell[] = [];
 
     switch (cell.getPiece().toUpperCase()) {
         case "K":
@@ -190,9 +189,11 @@ const getLegalMoves = (cell: Cell, board: Chessboard): Cell[] => {
         }
     }
 
-    // do a check for after move (cant move king to illegal squares)
+    // do a check for after move (The king must not be in check after moving, etc.)
     return availableCells;
 };
+
+// check is king is in check, this should be done after a move
 
 // Take in board
 interface BoardProps {
