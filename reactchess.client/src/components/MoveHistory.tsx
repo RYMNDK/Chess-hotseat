@@ -2,6 +2,7 @@ import { RenderAction } from "../types/chessType";
 
 // Long algebraic notation ["e2-e4 Nf8-g6"]
 const parse = (halfMove: RenderAction): string => {
+    // parse entire list every time, consider caching the results
     switch (halfMove.type) {
         case "MOVE_PIECE": {
             const payload = halfMove.payload;
@@ -9,6 +10,14 @@ const parse = (halfMove: RenderAction): string => {
             return `${piece !== "P" ? piece : ""}${payload.from.toString()}${
                 payload.to.getPiece() === " " ? "-" : "x"
             }${payload.to.toString()}${payload.denote ?? ""}`;
+        }
+        case "CASTLE_ACTION": {
+            const payload = halfMove.payload;
+            if (payload.side === "k") {
+                return "O-O";
+            } else {
+                return "O-O-O";
+            }
         }
         default:
             return "bad move";
@@ -19,16 +28,14 @@ interface MoveHistoryProps {
     moveList: RenderAction[];
 }
 
-const MoveHistory: React.FC<MoveHistoryProps> = ({
-    moveList
-}) => {
+const MoveHistory: React.FC<MoveHistoryProps> = ({ moveList }) => {
     const renderFullMoves = (halfMoveAction: RenderAction[]): string[] => {
         const fullMoves: Array<string> = [];
         for (let i: number = 0; i < halfMoveAction.length; i += 2) {
             fullMoves.push(
                 `${parse(halfMoveAction[i])}${
                     i + 1 < halfMoveAction.length
-                        ? "\t" + parse(halfMoveAction[i + 1])
+                        ? " " + parse(halfMoveAction[i + 1])
                         : ""
                 }`
             );
