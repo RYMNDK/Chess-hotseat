@@ -1,11 +1,9 @@
-import {
-    MovePieceAction,
-    Cell,
-    Hand,
-    Chessboard,
-    Direction,
-} from "../types/chessType";
 import { useState, useEffect } from "react";
+
+import { Hand, Direction, Chessboard } from "../types/chessType";
+import { Cell } from "../types/cell";
+import { MovePieceAction } from "../types/actionType";
+
 import "./Board.css";
 import RenderPiece from "./RenderPiece";
 
@@ -65,6 +63,8 @@ const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
             availableCells.push(
                 new Cell(cell.getCol() - 1, cell.getRow() - 1, " ")
             );
+
+            // put castle logic here
 
             availableCells = availableCells.filter((other) =>
                 cell.canMove(other, board)
@@ -139,8 +139,12 @@ const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
             break;
         }
         default: {
+            // en passant here
             if (cell.getPiece() === "p") {
-                if (cell.getRow() === 1) {
+                if (
+                    cell.getRow() === 1 &&
+                    board[cell.getRow() + 2][cell.getCol()] === " "
+                ) {
                     availableCells.push(
                         new Cell(cell.getCol(), cell.getRow() + 2, " ")
                     );
@@ -161,7 +165,10 @@ const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
                     );
                 }
             } else if (cell.getPiece() === "P") {
-                if (cell.getRow() === 6) {
+                if (
+                    cell.getRow() === 6 &&
+                    board[cell.getRow() - 2][cell.getCol()] === " "
+                ) {
                     availableCells.push(
                         new Cell(cell.getCol(), cell.getRow() - 2, " ")
                     );
@@ -182,7 +189,6 @@ const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
                     );
                 }
             }
-
             availableCells = availableCells.filter((other) =>
                 cell.canMove(other, board)
             );
@@ -194,9 +200,10 @@ const getMoves = (cell: Cell, board: Chessboard): Cell[] => {
 
 interface BoardProps {
     board: Chessboard;
+    isWhiteTurn: boolean;
     onBoardMove: (action: MovePieceAction) => Promise<void>;
 }
-const Board: React.FC<BoardProps> = ({ board, onBoardMove }) => {
+const Board: React.FC<BoardProps> = ({ board, isWhiteTurn, onBoardMove }) => {
     const [hand, setHand] = useState<Hand>(null);
     const [moves, setMoves] = useState<Cell[]>([]);
 
@@ -205,7 +212,7 @@ const Board: React.FC<BoardProps> = ({ board, onBoardMove }) => {
             const boardElement = document.querySelector(".board");
             if (boardElement && !boardElement.contains(event.target as Node)) {
                 setHand(null);
-                setMoves([]); // Reset legal moves as well
+                setMoves([]);
             }
         };
 
@@ -217,7 +224,11 @@ const Board: React.FC<BoardProps> = ({ board, onBoardMove }) => {
     }, []);
 
     const onBoardClick = (location: Cell): void => {
-        if (!hand && location.getPiece() !== " ") {
+        if (
+            !hand &&
+            location.getPiece() !== " " &&
+            location.isRightColor(isWhiteTurn)
+        ) {
             setMoves(getMoves(location, board));
             setHand(location);
         } else if (hand && !location.equals(hand)) {

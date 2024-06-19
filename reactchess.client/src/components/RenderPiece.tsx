@@ -1,4 +1,6 @@
-import { Cell, Hand } from "../types/chessType";
+import { Hand } from "../types/chessType";
+import { Cell } from "../types/cell";
+
 import "./RenderPiece.css";
 
 const renderMap = (cellString: string): string => {

@@ -1,4 +1,4 @@
-import { RenderAction } from "../types/chessType";
+import { RenderAction } from "../types/actionType";
 
 // Long algebraic notation ["e2-e4 Nf8-g6"]
 const parse = (halfMove: RenderAction): string => {
@@ -9,15 +9,23 @@ const parse = (halfMove: RenderAction): string => {
             const piece: string = payload.from.getPiece().toUpperCase();
             return `${piece !== "P" ? piece : ""}${payload.from.toString()}${
                 payload.to.getPiece() === " " ? "-" : "x"
-            }${payload.to.toString()}${payload.denote ?? ""}`;
+            }${payload.to.toString()}${
+                payload.denote !== "" ? payload.denote.toUpperCase() : ""
+            }`;
         }
         case "CASTLE_ACTION": {
             const payload = halfMove.payload;
             if (payload.side === "k") {
-                return "O-O";
+                return `O-O${payload.denote}`;
             } else {
-                return "O-O-O";
+                return `O-O-O${payload.denote}`;
             }
+        }
+        case "EN_PASSANT_ACTION": {
+            const payload = halfMove.payload;
+            return `${payload.from.toString()}x${payload.to.toString()}${
+                payload.denote !== "" ? payload.denote : ""
+            } E.P.`;
         }
         default:
             return "bad move";
