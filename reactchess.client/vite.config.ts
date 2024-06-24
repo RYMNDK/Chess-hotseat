@@ -52,13 +52,12 @@ export default defineConfig({
         },
     },
     server: {
-        proxy: {
-            "^/api": {
-                target,
-                secure: false,
-            },
-        },
-        port: 5173,
+      '/': {
+        target: 'https://localhost:7164',
+        changeOrigin: true,
+        secure: true,
+      },
+        port: 3000,
         https: {
             key: fs.readFileSync(keyFilePath),
             cert: fs.readFileSync(certFilePath),
