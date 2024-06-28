@@ -1,4 +1,4 @@
-import { useReducer, useState } from "react";
+import { useReducer, useState, useEffect } from "react";
 
 import { ChessGameState, Chessboard } from "../types/chessType";
 import { Cell } from "../types/cell";
@@ -65,10 +65,7 @@ const getNewPiece = (isWhiteTurn: boolean): string => {
     return isWhiteTurn ? piece.toUpperCase() : piece.toLowerCase();
 };
 
-const reduceBoard = (
-    prevState: Chessboard,
-    action: RenderAction
-): Chessboard => {
+const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
     const newState = prevState.map((row: string[]) => row.slice());
     switch (action.type) {
         case "MOVE_PIECE": {
@@ -143,7 +140,11 @@ const reduceBoard = (
             }
             break;
         }
+        case "SET_BOARD": {
+            return action.payload;
+        }
     }
+
     return newState;
 };
 
@@ -211,11 +212,12 @@ const checkEnPassant = (
     }
 };
 
-const Game: React.FC = () => {
-    const MockFEN: string =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+interface GameProp {
+    BoardFEN: string;
+}
 
-    const gameState: ChessGameState = parseFEN(MockFEN);
+const Game: React.FC<GameProp> = ({ BoardFEN }) => {
+    const gameState: ChessGameState = parseFEN(BoardFEN);
 
     const [board, updateBoard] = useReducer(reduceBoard, gameState.chessboard);
     const [isWhiteTurn, setIsWhiteTurn] = useState<boolean>(
@@ -237,6 +239,10 @@ const Game: React.FC = () => {
     const [isFreePlace, setIsFreePlace] = useState<boolean>(false);
     const [showAdvanceControl, setShowAdvanceControl] =
         useState<boolean>(false);
+
+    useEffect(() => {
+        setGameState(BoardFEN);
+    }, [BoardFEN]);
 
     // renderActions means an action that is in move history
     const renderActions = history.filter(
@@ -300,7 +306,6 @@ const Game: React.FC = () => {
                 }
                 break;
             case "P":
-                console.log("pawn move: ", action);
                 if (
                     payload.from.getRow() === 1 &&
                     payload.to.getRow() === 3 &&
@@ -460,14 +465,13 @@ const Game: React.FC = () => {
     };
 
     const onClickResetBoard = (): void => {
-        console.log("Reset board");
         setMessage("");
         updateHistory({
             type: "CLEAR_BOARD",
         });
 
         // new assign, assign the states
-        const state = parseFEN(
+        setGameState(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         );
     };
@@ -480,6 +484,23 @@ const Game: React.FC = () => {
             setIsFreePlace(false);
             setMessage("Leaving free place, please check turn player.");
         }
+    };
+
+    const setGameState = (FEN: string) => {
+        const gameState = parseFEN(FEN);
+        updateBoard({
+            type: "SET_BOARD",
+            payload: gameState.chessboard,
+        });
+        setIsWhiteTurn(gameState.activeColor === "w");
+        setCastleAvailable(gameState.castlingAvailability);
+        setEnPassant(
+            gameState.enPassantTarget !== "-"
+                ? getCell(gameState.enPassantTarget)
+                : null
+        );
+        setHalfMove(gameState.halfmoveClock);
+        setFullMove(gameState.fullmoveNumber);
     };
 
     return (
