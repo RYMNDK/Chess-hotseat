@@ -1,4 +1,4 @@
-import {Cell} from "../types/cell.ts";
+import { Cell } from "../types/cell.ts";
 
 export const getCell = (location: string): Cell =>
     new Cell(
@@ -6,7 +6,6 @@ export const getCell = (location: string): Cell =>
         8 - (location[1].charCodeAt(0) - "0".charCodeAt(0)),
         " "
     );
-
 export const getNewPiece = (isWhiteTurn: boolean): string => {
     let piece;
     do {

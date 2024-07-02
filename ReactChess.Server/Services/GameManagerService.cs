@@ -31,7 +31,7 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
 
     private async Task<Room> JoinExistingRoom(string playerName, string playerConnectionId, Guid roomId)
     {
-        Room room = await context.Rooms.FirstOrDefaultAsync(x => x.Id == roomId) 
+        Room room = await context.Rooms.FirstOrDefaultAsync(x => x.Id == roomId)
             ?? await CreateNewRoom(playerName, playerConnectionId, roomId);
 
         if (room.WhiteConnectionId == "")
@@ -57,10 +57,10 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
     public async Task<Room> GetAvailableRoom(string playerName, string playerConnectionId)
     {
         Guid? roomId = matchMaker.GetNextWaitingRoomId();
-        
+
         if (roomId == null)
         {
-             return await CreateNewRoom(playerName, playerConnectionId, new Guid());
+            return await CreateNewRoom(playerName, playerConnectionId, new Guid());
         }
 
         return await JoinExistingRoom(playerName, playerConnectionId, roomId.Value);
@@ -78,7 +78,7 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
         await context.SaveChangesAsync();
     }
 
-    public async Task<Board> CreateBoard(Guid boardId)
+    public Board CreateBoard(Guid boardId)
     {
         Board newGameBoard = new()
         {
@@ -91,4 +91,3 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
     }
 
 }
-

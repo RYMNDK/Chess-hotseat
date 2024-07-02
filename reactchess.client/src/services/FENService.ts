@@ -1,4 +1,4 @@
-import {Chessboard, ChessGameState} from "../types/chessType.ts";
+import { Chessboard, ChessGameState } from "../types/chessType.ts";
 
 export const parseFEN = (fen: string): ChessGameState => {
     const [
@@ -10,11 +10,9 @@ export const parseFEN = (fen: string): ChessGameState => {
         fullmoveNumber,
     ] = fen.split(" ");
 
-    const chessboard: Chessboard = { squares:
-        Array.from({length: 8}, () =>
-            Array(8).fill(" ")
-        )
-    }
+    const chessboard: Chessboard = {
+        squares: Array.from({ length: 8 }, () => Array(8).fill(" ")),
+    };
 
     const rows = piecePlacement.split("/");
     for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
@@ -40,38 +38,46 @@ export const parseFEN = (fen: string): ChessGameState => {
 };
 
 export const genFEN = (gameState: ChessGameState): string => {
-    console.log("Initial chess game state:", gameState);
-    const { chessboard, activeColor, castlingAvailability, enPassantTarget, halfmoveClock, fullmoveNumber } = gameState;
+    const {
+        chessboard,
+        activeColor,
+        castlingAvailability,
+        enPassantTarget,
+        halfmoveClock,
+        fullmoveNumber,
+    } = gameState;
 
-    // Convert board state to FEN piece placement
-    const piecePlacement = chessboard.squares.map(row => {
-        let emptyCount = 0;
-        let resultRow = row.map(square => {
-            if (square === '') {
-                emptyCount++;
-                return '';  // Do not add anything to the string yet
-            } else {
-                const piece = (emptyCount > 0 ? emptyCount.toString() : '') + square; // Append the count before the piece if needed
-                emptyCount = 0; // Reset empty count
-                return piece;
+    const piecePlacement = chessboard.squares
+        .map((row) => {
+            let resultRow = "";
+            let emptyCount = 0;
+
+            for (const square of row) {
+                if (square === " ") {
+                    emptyCount++;
+                } else {
+                    if (emptyCount > 0) {
+                        resultRow += emptyCount;
+                        emptyCount = 0;
+                    }
+                    resultRow += square;
+                }
             }
-        }).join(''); // Join all pieces and numbers within the row
 
-        if (emptyCount > 0) {
-            resultRow += emptyCount.toString(); // Append any remaining empty squares at the end of the row
-        }
-        return resultRow;
-    }).join('/'); // Join all rows with '/'
+            if (emptyCount > 0) {
+                resultRow += emptyCount;
+            }
+
+            return resultRow;
+        })
+        .join("/");
 
     const activeColorFEN = activeColor;
-    const castlingFEN = castlingAvailability !== '' ? castlingAvailability : '-';
-    const enPassantFEN = enPassantTarget !== '' ? enPassantTarget : '-';
-    const halfmoveFEN = halfmoveClock.toString();
-    const fullmoveFEN = fullmoveNumber.toString();
+    const castlingFEN =
+        castlingAvailability !== "" ? castlingAvailability : "-";
+    const enPassantFEN = enPassantTarget !== "" ? enPassantTarget : "-";
+    const halfmoveFEN = Math.floor(halfmoveClock).toString();
+    const fullmoveFEN = Math.floor(fullmoveNumber).toString();
 
-    // Combine all parts to form the FEN string
-    const FEN = `${piecePlacement} ${activeColorFEN} ${castlingFEN} ${enPassantFEN} ${halfmoveFEN} ${fullmoveFEN}`;
-
-    console.log("Generated FEN:", FEN);
-    return FEN;
+    return `${piecePlacement} ${activeColorFEN} ${castlingFEN} ${enPassantFEN} ${halfmoveFEN} ${fullmoveFEN}`;
 };

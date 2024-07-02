@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import Game from "./components/Game";
 import * as signalR from "@microsoft/signalr";
-import {ChessGameState} from "./types/chessType.ts";
-import {genFEN} from "./services/FENService.ts";
+import { ChessGameState } from "./types/chessType.ts";
+import { genFEN } from "./services/FENService.ts";
 
 function App() {
     const [FEN, setFEN] = useState<string>("8/8/8/8/8/8/8/8 w KQkq - 0 1");
@@ -11,12 +11,12 @@ function App() {
         null
     );
 
-    const [gameMode , setGameMode] = useState<string>("");
+    const [gameMode, setGameMode] = useState<string>("");
 
-    const [userName , setUserName] = useState<string>("Anonymous");
-    const [connectionId , setConnectionId] = useState<string>("");
-    const [color , setColor] = useState<string>("unknown");
-    const [boardId , setBoardId] = useState<string>("");
+    const [userName, setUserName] = useState<string>("Anonymous");
+    const [connectionId, setConnectionId] = useState<string>("");
+    const [color, setColor] = useState<string>("unknown");
+    const [boardId, setBoardId] = useState<string>("");
 
     const ConnectAsPlayer = () => {
         setGameMode("twoplay");
@@ -30,7 +30,6 @@ function App() {
             .withAutomaticReconnect()
             .build();
         setConnection(newConnection);
-
     };
 
     const PlayHotseat = () => {
@@ -50,13 +49,11 @@ function App() {
                     });
 
                     connection.on("RoomNotification", (message, data) => {
-                        console.log("Message:", message);
-                        console.log("Data:", data);
-
-                        const newColor = data.blackConnectionId === connectionId ? "black" : "white";
-                        setColor(newColor);
-                        console.log(`You are playing as ${newColor}`);
-
+                        const playerColor =
+                            data.blackConnectionId === connectionId
+                                ? "black"
+                                : "white";
+                        setColor(playerColor);
                         setBoardId(data.boardId);
                     });
 
@@ -68,7 +65,6 @@ function App() {
                         // should use type, DTO and SendCore on serverside
                         console.log("System message:", message);
                     });
-
                 })
                 .catch((e) => console.log("Connection failed: ", e));
 
@@ -76,26 +72,21 @@ function App() {
                 connection.stop().then(() => console.log("Connection stopped"));
             };
         }
-    }, [connection, connectionId]);
+    }, [connection]);
 
-    const updateToHub =
-        (gameState: ChessGameState) => {
-            console.log("gamestate", gameState);
-            // console.log("NewFen", genFEN(gameState) )
-
-            // add the action
-            if (connection) {
-                // send new fen to backend
-                // connection.invoke("UpdateBoardFEN", FEN).then(
-                //     (result:string) => {
-                //         // set FEN
-                //         console.log(result);
-                //     }
-                // );
-            } else {
-                console.log("Error with hub connection")
-            }
-        };
+    const updateToHub = (gameState: ChessGameState) => {
+        // add the action
+        if (connection) {
+            // send new fen to backend
+            connection
+                .invoke("UpdateBoardFEN", genFEN(gameState))
+                .then((result: string) => {
+                    setFEN(result);
+                });
+        } else {
+            console.log("Error with hub connection");
+        }
+    };
 
     return (
         <>
@@ -126,7 +117,11 @@ function App() {
                 New hot seat game
             </button>
 
-            <Game BoardFEN={FEN} sendBoardToBackend={updateToHub} GameMode={gameMode}/>
+            <Game
+                BoardFEN={FEN}
+                sendBoardToBackend={updateToHub}
+                GameMode={gameMode}
+            />
         </>
     );
 }

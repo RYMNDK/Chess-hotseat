@@ -1,15 +1,21 @@
-import {useEffect, useReducer, useState} from "react";
+import { useEffect, useReducer, useState } from "react";
 
-import {Chessboard, ChessGameState} from "../types/chessType";
-import {Cell} from "../types/cell";
-import {Action, CastleAction, EnPassantAction, MovePieceAction, RenderAction,} from "../types/actionType";
+import { Chessboard, ChessGameState } from "../types/chessType";
+import { Cell } from "../types/cell";
+import {
+    Action,
+    CastleAction,
+    EnPassantAction,
+    MovePieceAction,
+    RenderAction,
+} from "../types/actionType";
 
 import "./Game.css";
 import Board from "./Board";
 import MoveHistory from "./MoveHistory";
-import {parseFEN} from "../services/FENService.ts";
-import {checkEnPassant} from "../services/arbiterService.ts";
-import {getCell, getNewPiece} from "../services/boardService.ts";
+import { parseFEN } from "../services/FENService.ts";
+import { checkEnPassant } from "../services/arbiterService.ts";
+import { getCell, getNewPiece } from "../services/boardService.ts";
 
 const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
     const newState = prevState.squares.map((row: string[]) => row.slice());
@@ -19,11 +25,11 @@ const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
                 action.payload.denote !== ""
                     ? action.payload.denote[1]
                     : prevState.squares[action.payload.from.getRow()][
-                        action.payload.from.getCol()
-                        ];
+                          action.payload.from.getCol()
+                      ];
             newState[action.payload.from.getRow()][
                 action.payload.from.getCol()
-                ] = " ";
+            ] = " ";
             break;
         }
         case "CASTLE_ACTION": {
@@ -64,32 +70,32 @@ const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
             if (action.payload.isWhite) {
                 newState[action.payload.to.getRow()][
                     action.payload.to.getCol()
-                    ] = "P";
+                ] = "P";
                 newState[action.payload.to.getRow() + 1][
                     action.payload.to.getCol()
-                    ] = " ";
+                ] = " ";
                 newState[action.payload.from.getRow()][
                     action.payload.from.getCol()
-                    ] = " ";
+                ] = " ";
             } else {
                 newState[action.payload.to.getRow()][
                     action.payload.to.getCol()
-                    ] = "p";
+                ] = "p";
                 newState[action.payload.to.getRow() - 1][
                     action.payload.to.getCol()
-                    ] = " ";
+                ] = " ";
                 newState[action.payload.from.getRow()][
                     action.payload.from.getCol()
-                    ] = " ";
+                ] = " ";
             }
             break;
         }
         case "SET_BOARD": {
-            return {squares: action.payload};
+            return { squares: action.payload };
         }
     }
 
-    return {squares: newState};
+    return { squares: newState };
 };
 
 const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
@@ -106,8 +112,8 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
         case "CHECK_ACTION": {
             if (prevHistory.length > 0) {
                 const lastAction: RenderAction = prevHistory[
-                prevHistory.length - 1
-                    ] as RenderAction;
+                    prevHistory.length - 1
+                ] as RenderAction;
                 if (!lastAction.payload.denote.includes("+")) {
                     lastAction.payload.denote += "+";
                 }
@@ -122,12 +128,16 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
 };
 
 interface GameProp {
-    BoardFEN: string,
-    sendBoardToBackend: (gameState: ChessGameState) => void,
-    GameMode: string
+    BoardFEN: string;
+    sendBoardToBackend: (gameState: ChessGameState) => void;
+    GameMode: string;
 }
 
-const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
+const Game: React.FC<GameProp> = ({
+    BoardFEN,
+    sendBoardToBackend,
+    GameMode,
+}) => {
     const gameState: ChessGameState = parseFEN(BoardFEN);
 
     const [board, updateBoard] = useReducer(reduceBoard, gameState.chessboard);
@@ -157,17 +167,16 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
 
     useEffect(() => {
         if (GameMode === "twoplay") {
-            console.log("Board Updated:", board);
             sendBoardToBackend({
                 chessboard: board,
-                activeColor: (isWhiteTurn ? "w" : "b"),
+                activeColor: isWhiteTurn ? "w" : "b",
                 castlingAvailability: castleAvailable,
-                enPassantTarget: (enPassant === null ? "" : enPassant.toString()),
+                enPassantTarget: enPassant === null ? "" : enPassant.toString(),
                 halfmoveClock: halfMove,
-                fullmoveNumber: fullMove
+                fullmoveNumber: fullMove,
             });
         }
-    }, [board]);
+    }, [board.squares]);
 
     // renderActions means an action that is in move history
     const renderActions = history.filter(
@@ -181,7 +190,6 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
     );
 
     const onBoardMove = async (action: MovePieceAction): Promise<void> => {
-
         const payload = action.payload;
         const piece: string = payload.from.getPiece();
 
@@ -289,7 +297,6 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
             setHalfMove(halfMove + 0.5);
         }
         setFullMove(fullMove + 0.5);
-
     };
 
     const onClickCheck = (): void => {
@@ -329,8 +336,6 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
         setIsWhiteTurn(!isWhiteTurn);
         setHalfMove(halfMove + 0.5);
         setFullMove(fullMove + 0.5);
-
-
     };
 
     const onClickEnPassant = (location: Cell, side: string): void => {
@@ -441,7 +446,7 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
                 />
             </div>
             {/*do a board check*/}
-            {(board && (
+            {board && (
                 <div className="right">
                     {isFreePlace ? (
                         <h1>Free Place Mode</h1>
@@ -503,7 +508,12 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
                     <div>
                         <h3>En passant at {enPassant?.toString() ?? "-"}</h3>
                         {enPassant != null &&
-                            checkEnPassant(board, enPassant, isWhiteTurn, "q") && (
+                            checkEnPassant(
+                                board,
+                                enPassant,
+                                isWhiteTurn,
+                                "q"
+                            ) && (
                                 <button
                                     onClick={() => {
                                         onClickEnPassant(enPassant, "q");
@@ -513,7 +523,12 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
                                 </button>
                             )}
                         {enPassant != null &&
-                            checkEnPassant(board, enPassant, isWhiteTurn, "k") && (
+                            checkEnPassant(
+                                board,
+                                enPassant,
+                                isWhiteTurn,
+                                "k"
+                            ) && (
                                 <button
                                     onClick={() => {
                                         onClickEnPassant(enPassant, "k");
@@ -542,25 +557,16 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
                                 >
                                     Free place mode
                                 </button>
-                                <button onClick={() => {
-                                }}>Load FEN
-                                </button>
-                                <button onClick={() => {
-                                }}>Export FEN
-                                </button>
-                                <button onClick={() => {
-                                }}>Add piece
-                                </button>
-                                <button onClick={() => {
-                                }}>Remove piece
-                                </button>
+                                <button onClick={() => {}}>Load FEN</button>
+                                <button onClick={() => {}}>Export FEN</button>
+                                <button onClick={() => {}}>Add piece</button>
+                                <button onClick={() => {}}>Remove piece</button>
                                 <button
                                     onClick={() => setIsWhiteTurn(!isWhiteTurn)}
                                 >
                                     Swap player
                                 </button>
-                                <button onClick={() => {
-                                }}>
+                                <button onClick={() => {}}>
                                     Add ... to history
                                 </button>
                                 <button
@@ -574,9 +580,9 @@ const Game: React.FC<GameProp> = ({BoardFEN, sendBoardToBackend, GameMode}) => {
                         )}
                     </div>
 
-                    <MoveHistory moveList={renderActions}/>
+                    <MoveHistory moveList={renderActions} />
                 </div>
-            ))}
+            )}
         </div>
     );
 };

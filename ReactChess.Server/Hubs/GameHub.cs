@@ -10,7 +10,7 @@ public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : 
 
     public override async Task OnConnectedAsync()
     {
-        Clients.Caller.SendAsync("ClientConnectionId", Context.ConnectionId);
+        await Clients.Caller.SendAsync("ClientConnectionId", Context.ConnectionId);
         var userName = Context.GetHttpContext()?.Request.Query["username"].ToString().Trim();
         if (string.IsNullOrWhiteSpace(userName))
         {
@@ -24,31 +24,35 @@ public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : 
         await Groups.AddToGroupAsync(Context.ConnectionId, room.Id.ToString());
         ConnectionGroupMap.TryAdd(Context.ConnectionId, room.Id.ToString());
 
-        if (room.Status == Room.GameStatus.Waiting) 
-        { 
+        if (room.Status == Room.GameStatus.Waiting)
+        {
             await Clients.Caller.SendAsync("RoomNotification", "You get a new room, waiting for an opponent.", room);
-        } else if (room.Status == Room.GameStatus.InProgress)
+        }
+        else if (room.Status == Room.GameStatus.InProgress)
         {
             await Clients.Caller.SendAsync("RoomNotification", "You joined a waiting room. Game will start soon", room);
-            await Clients.OthersInGroup(room.Id.ToString()).SendAsync("RoomNotification", "Opponent found! Game will start soon.",room);
-            
-            // send fresh board to the frontend
-            Board b = await gameManager.CreateBoard(room.Id);
-            await Clients.Group(room.Id.ToString()).SendAsync("UpdateBoard", b.FEN);
+            await Clients.OthersInGroup(room.Id.ToString()).SendAsync("RoomNotification", "Opponent found! Game will start soon.", room);
+
+            await Clients.Group(room.Id.ToString()).SendAsync("UpdateBoard",
+                "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+            );
         }
 
         await base.OnConnectedAsync();
     }
-    
+
     public async Task SendMessage(string message)
     {
         var connectionId = Context.ConnectionId;
         await Clients.All.SendAsync("ReceiveMessage", connectionId, message);
     }
-    
+
     public async Task<string> UpdateBoardFEN(string message)
     {
         logger.LogInformation("message from frontend " + message);
+        
+        await Clients.OthersInGroup(ConnectionGroupMap[Context.ConnectionId]).SendAsync("UpdateBoard", message);
+        
         return message;
     }
 
@@ -61,7 +65,7 @@ public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : 
             await gameManager.DropGame(Guid.Parse(groupName));
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
             await Clients.OthersInGroup(groupName).SendAsync("RoomNotification", "Your opponent disconnected", null);
-            
+
         }
 
         await base.OnDisconnectedAsync(exception);
