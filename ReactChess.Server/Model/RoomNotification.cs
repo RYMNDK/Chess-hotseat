@@ -1,6 +1,6 @@
-﻿namespace ReactChess.Server.Model
+﻿namespace ReactChess.Server.Model;
+
+public class RoomNotification
 {
-    public class RoomNotification
-    {
-    }
 }
+

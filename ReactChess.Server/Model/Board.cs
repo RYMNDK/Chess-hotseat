@@ -1,10 +1,8 @@
-﻿namespace ReactChess.Server.Model
+﻿namespace ReactChess.Server.Model;
+
+public class Board
 {
-    public class Board
-    {
-        public Guid Id { get; set; }
-        public int TurnNumber { get; set; }
-        public string FEN { get; set; }
-        public string LastMove { get; set; }
-    }
+    public Guid Id { get; set; }
+    public DateTime MoveNumber { get; set; }
+    public string FEN { get; set; }
 }

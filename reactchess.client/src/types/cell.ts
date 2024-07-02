@@ -1,11 +1,11 @@
 import { Chessboard } from "./chessType";
 
 export class Cell {
-    private row: number;
-    private col: number;
+    private readonly row: number;
+    private readonly col: number;
     private piece: string;
 
-    public static letters: string = "abcdefgh";
+    public static readonly letters: string = "abcdefgh";
 
     // map the cell from table to array
     constructor(col: number, row: number, piece: string) {
@@ -32,7 +32,7 @@ export class Cell {
     }
 
     getPieceFromBoard(board: Chessboard): string {
-        return board[this.row][this.col];
+        return board.squares[this.row][this.col];
     }
 
     canMove(other: Cell, board: Chessboard): boolean {
@@ -46,12 +46,12 @@ export class Cell {
         const isLowerCase = (char: string) => char >= "a" && char <= "z";
 
         return (
-            board[other.row][other.col] === " " ||
+            board.squares[other.row][other.col] === " " ||
             !(
                 (isUpperCase(this.piece) &&
-                    isUpperCase(board[other.row][other.col])) ||
+                    isUpperCase(board.squares[other.row][other.col])) ||
                 (isLowerCase(this.piece) &&
-                    isLowerCase(board[other.row][other.col]))
+                    isLowerCase(board.squares[other.row][other.col]))
             )
         );
     }

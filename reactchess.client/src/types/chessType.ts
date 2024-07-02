@@ -1,6 +1,8 @@
 import { Cell } from "./cell";
 
-export type Chessboard = string[][];
+export interface Chessboard {
+    squares: string[][]; // 8x8 array with pieces represented as strings
+}
 
 export type Hand = Cell | null;
 
