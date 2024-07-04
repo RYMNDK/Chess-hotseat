@@ -1,4 +1,4 @@
-# HotSeat Chess V0.0.0
+# HotSeat Chess V0.0.1
 
 A simple chess app written in React Typescript. Backend is .Net web api with SingalR for board synchronizing. 
 The initial idea is have 2 people play chess with each other using pencil and eraser with some vertical lines drawn on a notebook.
@@ -39,9 +39,12 @@ This project is made with React Typescript frontend and dotnet core 8. WebSocket
 ## Running Locally
 
 if you want to play without hub connection
+
 cd reactchess.client && npm run dev 
 
 CORS is configured to accept connection from localhost:3000 and 3001, Frontend will run on 3000 and 3001. 
+
 cd ReactChess.Server && dotnet run
+
 cd reactchess.client && npm run dev 
 
