@@ -9,7 +9,6 @@ This is current a MVP, and it has the following feature
 
 - Moving pieces: clicking a piece will highlight places in the board for available moves. Clicking any spot in the board will have the highlighted piece move to that square.
 - Synchronizing the board: when a move is mode ALL player will see the change
--  
 - Recording moves: All moves will be listed in move history in full algebraic notation.
 - Special moves: can be achieved by using the buttons on the side.  
 - Free place mode: place pieces on the board 
