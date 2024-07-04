@@ -484,7 +484,7 @@ $RECYCLE.BIN/
 *.swp
 
 # Visual code files
-/.vscode
+.vscode
 
 chess-sqlite.session.sql
 ReactChess.Server/localChess.db
