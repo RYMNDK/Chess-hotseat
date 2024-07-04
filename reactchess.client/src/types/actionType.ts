@@ -7,6 +7,7 @@ export type Action =
     | RenderAction
     | CheckAction
     | UndoMoveAction
+    | SetBoardAction
     | ClearBoardAction;
 
 export interface MovePieceAction {
@@ -43,6 +44,12 @@ interface CheckAction {
 interface UndoMoveAction {
     type: "UNDO_MOVE";
 }
+
+interface SetBoardAction {
+    type: "SET_BOARD";
+    payload: string[][];
+}
+
 interface ClearBoardAction {
     type: "CLEAR_BOARD";
 }

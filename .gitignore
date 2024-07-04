@@ -482,3 +482,12 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Visual code files
+/.vscode
+
+chess-sqlite.session.sql
+ReactChess.Server/localChess.db
+ReactChess.Server/localChess.db-shm
+ReactChess.Server/localChess.db-wal
+qodana.yaml

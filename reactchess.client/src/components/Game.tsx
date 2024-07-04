@@ -1,85 +1,32 @@
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 
-import { ChessGameState, Chessboard } from "../types/chessType";
+import { Chessboard, ChessGameState } from "../types/chessType";
 import { Cell } from "../types/cell";
 import {
     Action,
-    RenderAction,
-    MovePieceAction,
     CastleAction,
     EnPassantAction,
+    MovePieceAction,
+    RenderAction,
 } from "../types/actionType";
 
 import "./Game.css";
 import Board from "./Board";
 import MoveHistory from "./MoveHistory";
+import { parseFEN } from "../services/FENService.ts";
+import { checkEnPassant } from "../services/arbiterService.ts";
+import { getCell, getNewPiece } from "../services/boardService.ts";
 
-const parseFEN = (fen: string): ChessGameState => {
-    const [
-        piecePlacement,
-        activeColor,
-        castlingAvailability,
-        enPassantTarget,
-        halfmoveClock,
-        fullmoveNumber,
-    ] = fen.split(" ");
-
-    const chessboard: Chessboard = Array.from({ length: 8 }, () =>
-        Array(8).fill(" ")
-    );
-
-    const rows = piecePlacement.split("/");
-    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
-        let colIdx = 0;
-        for (const char of rows[rowIdx]) {
-            if (isNaN(Number(char))) {
-                chessboard[rowIdx][colIdx] = char;
-                colIdx += 1;
-            } else {
-                colIdx += Number(char);
-            }
-        }
-    }
-
-    return {
-        chessboard,
-        activeColor,
-        castlingAvailability,
-        enPassantTarget,
-        halfmoveClock: Number(halfmoveClock),
-        fullmoveNumber: Number(fullmoveNumber),
-    };
-};
-
-const genFEN = (gameState: ChessGameState): string => {
-    // if the castle availability is "" then set it to -
-    // if en passant is null then set it to -
-    return "todo:";
-};
-
-const getNewPiece = (isWhiteTurn: boolean): string => {
-    let piece;
-    do {
-        piece = prompt("Enter one of q, b, r, n:") || "";
-    } while (!["q", "b", "r", "n"].includes(piece));
-    return isWhiteTurn ? piece.toUpperCase() : piece.toLowerCase();
-};
-
-const reduceBoard = (
-    prevState: Chessboard,
-    action: RenderAction
-): Chessboard => {
-    const newState = prevState.map((row: string[]) => row.slice());
+const reduceBoard = (prevState: Chessboard, action: Action): Chessboard => {
+    const newState = prevState.squares.map((row: string[]) => row.slice());
     switch (action.type) {
         case "MOVE_PIECE": {
-            const piece: string =
+            newState[action.payload.to.getRow()][action.payload.to.getCol()] =
                 action.payload.denote !== ""
                     ? action.payload.denote[1]
-                    : prevState[action.payload.from.getRow()][
+                    : prevState.squares[action.payload.from.getRow()][
                           action.payload.from.getCol()
                       ];
-            newState[action.payload.to.getRow()][action.payload.to.getCol()] =
-                piece;
             newState[action.payload.from.getRow()][
                 action.payload.from.getCol()
             ] = " ";
@@ -143,8 +90,12 @@ const reduceBoard = (
             }
             break;
         }
+        case "SET_BOARD": {
+            return { squares: action.payload };
+        }
     }
-    return newState;
+
+    return { squares: newState };
 };
 
 const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
@@ -176,46 +127,18 @@ const reduceHistory = (prevHistory: Action[], action: Action): Action[] => {
     return prevHistory;
 };
 
-const getCell = (location: string): Cell =>
-    new Cell(
-        location.charCodeAt(0) - "a".charCodeAt(0),
-        8 - (location[1].charCodeAt(0) - "0".charCodeAt(0)),
-        " "
-    );
+interface GameProp {
+    BoardFEN: string;
+    sendBoardToBackend: (gameState: ChessGameState) => void;
+    GameMode: string;
+}
 
-const checkEnPassant = (
-    board: Chessboard,
-    location: Cell,
-    isWhiteTurn: boolean,
-    side: string
-): boolean => {
-    if (
-        (location.getCol() === 0 && side === "q") ||
-        (location.getCol() === 7 && side === "k")
-    ) {
-        // out of bounds
-        return false;
-    }
-    if (isWhiteTurn) {
-        if (side === "k") {
-            return board[location.getRow() + 1][location.getCol() - 1] === "P";
-        } else {
-            return board[location.getRow() + 1][location.getCol() + 1] === "P";
-        }
-    } else {
-        if (side === "k") {
-            return board[location.getRow() - 1][location.getCol() - 1] === "p";
-        } else {
-            return board[location.getRow() - 1][location.getCol() + 1] === "p";
-        }
-    }
-};
-
-const Game: React.FC = () => {
-    const MockFEN: string =
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    const gameState: ChessGameState = parseFEN(MockFEN);
+const Game: React.FC<GameProp> = ({
+    BoardFEN,
+    sendBoardToBackend,
+    GameMode,
+}) => {
+    const gameState: ChessGameState = parseFEN(BoardFEN);
 
     const [board, updateBoard] = useReducer(reduceBoard, gameState.chessboard);
     const [isWhiteTurn, setIsWhiteTurn] = useState<boolean>(
@@ -237,6 +160,23 @@ const Game: React.FC = () => {
     const [isFreePlace, setIsFreePlace] = useState<boolean>(false);
     const [showAdvanceControl, setShowAdvanceControl] =
         useState<boolean>(false);
+
+    useEffect(() => {
+        setGameState(BoardFEN);
+    }, [BoardFEN]);
+
+    useEffect(() => {
+        if (GameMode === "twoplay") {
+            sendBoardToBackend({
+                chessboard: board,
+                activeColor: isWhiteTurn ? "w" : "b",
+                castlingAvailability: castleAvailable,
+                enPassantTarget: enPassant === null ? "" : enPassant.toString(),
+                halfmoveClock: halfMove,
+                fullmoveNumber: fullMove,
+            });
+        }
+    }, [board.squares]);
 
     // renderActions means an action that is in move history
     const renderActions = history.filter(
@@ -300,7 +240,6 @@ const Game: React.FC = () => {
                 }
                 break;
             case "P":
-                console.log("pawn move: ", action);
                 if (
                     payload.from.getRow() === 1 &&
                     payload.to.getRow() === 3 &&
@@ -348,7 +287,7 @@ const Game: React.FC = () => {
                 payload.denote !== "" ? payload.denote.toUpperCase() : ""
             }`
         );
-        await updateHistory(action);
+        updateHistory(action);
         updateBoard(action);
 
         setIsWhiteTurn(!isWhiteTurn);
@@ -401,8 +340,7 @@ const Game: React.FC = () => {
 
     const onClickEnPassant = (location: Cell, side: string): void => {
         setMessage(`En Passant on ${location.toString()}`);
-        let from = null;
-
+        let from: Cell;
         if (isWhiteTurn) {
             if (side === "k") {
                 from = new Cell(
@@ -460,14 +398,13 @@ const Game: React.FC = () => {
     };
 
     const onClickResetBoard = (): void => {
-        console.log("Reset board");
         setMessage("");
         updateHistory({
             type: "CLEAR_BOARD",
         });
 
         // new assign, assign the states
-        const state = parseFEN(
+        setGameState(
             "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
         );
     };
@@ -482,6 +419,23 @@ const Game: React.FC = () => {
         }
     };
 
+    const setGameState = (FEN: string) => {
+        const gameState = parseFEN(FEN);
+        updateBoard({
+            type: "SET_BOARD",
+            payload: gameState.chessboard.squares,
+        });
+        setIsWhiteTurn(gameState.activeColor === "w");
+        setCastleAvailable(gameState.castlingAvailability);
+        setEnPassant(
+            gameState.enPassantTarget !== "-"
+                ? getCell(gameState.enPassantTarget)
+                : null
+        );
+        setHalfMove(gameState.halfmoveClock);
+        setFullMove(gameState.fullmoveNumber);
+    };
+
     return (
         <div className="main">
             <div className="left">
@@ -491,131 +445,144 @@ const Game: React.FC = () => {
                     onBoardMove={onBoardMove}
                 />
             </div>
-            <div className="right">
-                {isFreePlace ? (
-                    <h1>Free Place Mode</h1>
-                ) : (
-                    <h1>{isWhiteTurn ? "White" : "Black"} to play</h1>
-                )}
-                <h2 className="GameAlerts">{message}</h2>
-                <div>
-                    <button
-                        className="CheckButton"
-                        onClick={() => onClickCheck()}
-                    >
-                        Check!
-                    </button>
-                    <button
-                        onClick={() => {
-                            confirm("Offer draw") ? setMessage("") : null;
-                            // push a 1/2 - 1/2 in history
-                        }}
-                    >
-                        Offer draw
-                    </button>
-                    <button
-                        onClick={() => {
-                            confirm("Forfeit game?")
-                                ? setMessage("I resign, good game! 🤝")
-                                : null;
-                            // push a 1-0 or 0-1 in history
-                        }}
-                    >
-                        Resign
-                    </button>
-                    <button onClick={() => onClickResetBoard()}>
-                        New game
-                    </button>
-                </div>
-                <div>
-                    {castleAvailable.includes("K") && isWhiteTurn && (
-                        <button onClick={() => onClickCastle("k")}>
-                            White Short Castle
-                        </button>
+            {/*do a board check*/}
+            {board && (
+                <div className="right">
+                    {isFreePlace ? (
+                        <h1>Free Place Mode</h1>
+                    ) : (
+                        <h1>{isWhiteTurn ? "White" : "Black"} to play</h1>
                     )}
-                    {castleAvailable.includes("Q") && isWhiteTurn && (
-                        <button onClick={() => onClickCastle("q")}>
-                            White Long Castle
+                    <h2 className="GameAlerts">{message}</h2>
+                    <div>
+                        <button
+                            className="CheckButton"
+                            onClick={() => onClickCheck()}
+                        >
+                            Check!
                         </button>
-                    )}
-                    {castleAvailable.includes("k") && !isWhiteTurn && (
-                        <button onClick={() => onClickCastle("k")}>
-                            Black Short Castle
+                        <button
+                            onClick={() => {
+                                confirm("Offer draw") ? setMessage("") : null;
+                                // push a 1/2 - 1/2 in history
+                            }}
+                        >
+                            Offer draw
                         </button>
-                    )}
-                    {castleAvailable.includes("q") && !isWhiteTurn && (
-                        <button onClick={() => onClickCastle("q")}>
-                            Black Long Castle
+                        <button
+                            onClick={() => {
+                                confirm("Forfeit game?")
+                                    ? setMessage("I resign, good game! 🤝")
+                                    : null;
+                                // push a 1-0 or 0-1 in history
+                            }}
+                        >
+                            Resign
                         </button>
-                    )}
-                </div>
-                <div>
-                    <h3>En passant at {enPassant?.toString() ?? "-"}</h3>
-                    {enPassant != null &&
-                        checkEnPassant(board, enPassant, isWhiteTurn, "q") && (
-                            <button
-                                onClick={() => {
-                                    onClickEnPassant(enPassant, "q");
-                                }}
-                            >
-                                En Passant Queen Side
+                        <button onClick={() => onClickResetBoard()}>
+                            New game
+                        </button>
+                    </div>
+                    <div>
+                        {castleAvailable.includes("K") && isWhiteTurn && (
+                            <button onClick={() => onClickCastle("k")}>
+                                White Short Castle
                             </button>
                         )}
-                    {enPassant != null &&
-                        checkEnPassant(board, enPassant, isWhiteTurn, "k") && (
-                            <button
-                                onClick={() => {
-                                    onClickEnPassant(enPassant, "k");
-                                }}
-                            >
-                                En Passant King Side
+                        {castleAvailable.includes("Q") && isWhiteTurn && (
+                            <button onClick={() => onClickCastle("q")}>
+                                White Long Castle
                             </button>
                         )}
-                </div>
-                <div>
-                    <button
-                        onClick={() => {
-                            setShowAdvanceControl(!showAdvanceControl);
-                        }}
-                    >
-                        {" "}
-                        {!showAdvanceControl ? "Show" : "Hide"} Advanced
-                        Controls
-                    </button>
-                    {showAdvanceControl && (
-                        <div>
-                            <button
-                                onClick={() => {
-                                    onClickFreePlace();
-                                }}
-                            >
-                                Free place mode
+                        {castleAvailable.includes("k") && !isWhiteTurn && (
+                            <button onClick={() => onClickCastle("k")}>
+                                Black Short Castle
                             </button>
-                            <button onClick={() => {}}>Load FEN</button>
-                            <button onClick={() => {}}>Export FEN</button>
-                            <button onClick={() => {}}>Add piece</button>
-                            <button onClick={() => {}}>Remove piece</button>
-                            <button
-                                onClick={() => setIsWhiteTurn(!isWhiteTurn)}
-                            >
-                                Swap player
+                        )}
+                        {castleAvailable.includes("q") && !isWhiteTurn && (
+                            <button onClick={() => onClickCastle("q")}>
+                                Black Long Castle
                             </button>
-                            <button onClick={() => {}}>
-                                Add ... to history
-                            </button>
-                            <button
-                                onClick={() => {
-                                    onClickUndo();
-                                }}
-                            >
-                                Delete last move
-                            </button>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                    <div>
+                        <h3>En passant at {enPassant?.toString() ?? "-"}</h3>
+                        {enPassant != null &&
+                            checkEnPassant(
+                                board,
+                                enPassant,
+                                isWhiteTurn,
+                                "q"
+                            ) && (
+                                <button
+                                    onClick={() => {
+                                        onClickEnPassant(enPassant, "q");
+                                    }}
+                                >
+                                    En Passant Queen Side
+                                </button>
+                            )}
+                        {enPassant != null &&
+                            checkEnPassant(
+                                board,
+                                enPassant,
+                                isWhiteTurn,
+                                "k"
+                            ) && (
+                                <button
+                                    onClick={() => {
+                                        onClickEnPassant(enPassant, "k");
+                                    }}
+                                >
+                                    En Passant King Side
+                                </button>
+                            )}
+                    </div>
+                    <div>
+                        <button
+                            onClick={() => {
+                                setShowAdvanceControl(!showAdvanceControl);
+                            }}
+                        >
+                            {" "}
+                            {!showAdvanceControl ? "Show" : "Hide"} Advanced
+                            Controls
+                        </button>
+                        {showAdvanceControl && (
+                            <div>
+                                <button
+                                    onClick={() => {
+                                        onClickFreePlace();
+                                    }}
+                                >
+                                    Free place mode
+                                </button>
+                                <button onClick={() => {}}>Load FEN</button>
+                                <button onClick={() => {}}>Export FEN</button>
+                                <button onClick={() => {}}>Add piece</button>
+                                <button onClick={() => {}}>Remove piece</button>
+                                <button
+                                    onClick={() => setIsWhiteTurn(!isWhiteTurn)}
+                                >
+                                    Swap player
+                                </button>
+                                <button onClick={() => {}}>
+                                    Add ... to history
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        onClickUndo();
+                                    }}
+                                >
+                                    Delete last move
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
-                <MoveHistory moveList={renderActions} />
-            </div>
+                    <MoveHistory moveList={renderActions} />
+                </div>
+            )}
         </div>
     );
 };
