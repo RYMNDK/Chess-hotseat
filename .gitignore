@@ -491,3 +491,4 @@ ReactChess.Server/localChess.db
 ReactChess.Server/localChess.db-shm
 ReactChess.Server/localChess.db-wal
 qodana.yaml
+/.vscode
