@@ -1,22 +1,28 @@
 import { useState, useEffect } from "react";
-
-import { Hand, Chessboard } from "../types/chessType";
-import { Cell } from "../types/cell";
-import { MovePieceAction } from "../types/actionType";
-
-import "./Board.css";
 import RenderPiece from "./RenderPiece";
-import {getMoves} from "../services/arbiterService.ts";
+import "../Styles/Board.css";
+
+import { Cell } from "../types/cell";
+import { Chessboard, Hand } from "../types/chessType";
+import { EmptyAction, RenderAction} from "../types/actionType";
+import { boardHelper } from "../types/boardHelperType.ts";
+
+import {getAction, getAvailableMoves, illegalMoveFilter} from "../services/actionService.ts";
 
 interface BoardProps {
-    board: Chessboard;
-    isWhiteTurn: boolean;
-    onBoardMove: (action: MovePieceAction) => Promise<void>;
+    gameState: Chessboard
+    onBoardMove: (action: RenderAction ) => void;
+    moveHelper: boardHelper
 }
-const Board: React.FC<BoardProps> = ({ board, isWhiteTurn, onBoardMove }) => {
+const Board: React.FC<BoardProps> = ({
+    gameState,
+    onBoardMove,
+    moveHelper
+}) => {
     const [hand, setHand] = useState<Hand>(null);
     const [moves, setMoves] = useState<Cell[]>([]);
 
+    // clears the hand if the user clicks outside the board
     useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             const boardElement = document.querySelector(".board");
@@ -29,26 +35,23 @@ const Board: React.FC<BoardProps> = ({ board, isWhiteTurn, onBoardMove }) => {
         return () => window.removeEventListener("click", handleOutsideClick);
     }, []);
 
-    const onBoardClick = (location: Cell): void => {
+    const onBoardClick = (target: Cell): void => {
         if (
-            !hand &&
-            location.getPiece() !== " " &&
-            location.isRightColor(isWhiteTurn)
+            // pick up a piece
+            !hand && target.getPieceFromBoard(gameState) !== " " &&
+            target.isRightColor(gameState ,gameState.activeColor)
         ) {
-            setMoves(getMoves(location, board));
-            setHand(location);
-        } else if (hand && !location.equals(hand)) {
-            onBoardMove({
-                type: "MOVE_PIECE",
-                payload: {
-                    from: hand,
-                    to: location,
-                    denote: "",
-                },
-            }).then( () => {
-                setHand(null);
-                setMoves([]);
-            });
+
+            // all move -> available moves -> legal move
+            setMoves(illegalMoveFilter(gameState, target, moveHelper, getAvailableMoves(gameState, target, moveHelper)));
+            setHand(target);
+        } else if (hand && moves.some(cell => cell.equals(target))) {
+            const action: RenderAction|EmptyAction = getAction(gameState, hand, target);
+            if (action.type !== "EMPTY_ACTION" ) {
+                onBoardMove(action);
+            }
+            setHand(null);
+            setMoves([]);
         } else {
             setHand(null);
             setMoves([]);
@@ -57,30 +60,31 @@ const Board: React.FC<BoardProps> = ({ board, isWhiteTurn, onBoardMove }) => {
 
     return (
         <div className="board">
-            {board.squares.map((row: string[], rowIndex: number) => (
+            {gameState.board.map((row: string[], rowIndex: number) => (
                 <div key={rowIndex} className="chess-row">
-                    {row.map((piece: string, colIndex: number) => (
+                    {row.map((piece:string, colIndex: number) => (
                         <div
                             key={colIndex}
                             onClick={() =>
                                 onBoardClick(
-                                    new Cell(colIndex, rowIndex, piece)
+                                    new Cell(colIndex, rowIndex)
                                 )
                             }
                             className={`chess-square ${
                                 moves.some((cell: Cell) =>
                                     cell.equals(
-                                        new Cell(colIndex, rowIndex, " ")
+                                        new Cell(colIndex, rowIndex)
                                     )
                                 )
                                     ? "potential-move"
                                     : (rowIndex + colIndex) % 2 === 0
-                                    ? "white"
-                                    : "black"
-                            }`}
+                                        ? "white"
+                                        : "black"
+                                }`}
                         >
                             <RenderPiece
-                                location={new Cell(colIndex, rowIndex, piece)}
+                                location={new Cell(colIndex, rowIndex)}
+                                piece={piece}
                                 hand={hand}
                             />
                         </div>

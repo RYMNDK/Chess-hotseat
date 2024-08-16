@@ -1,19 +1,23 @@
 import { Cell } from "./cell";
+import {boardHelper} from "./boardHelperType.ts";
 
 export interface Chessboard {
-    squares: string[][]; // 8x8 array with pieces represented as strings
-}
-
-export type Hand = Cell | null;
-
-export interface ChessGameState {
-    chessboard: Chessboard;
-    activeColor: string;
+    board: string[][];
+    activeColor: "w"|"b";
     castlingAvailability: string;
     enPassantTarget: string;
     halfmoveClock: number;
     fullmoveNumber: number;
 }
+
+export interface GameData {
+    gameState: Chessboard,
+    message: string,
+    status: string,
+    helper: boardHelper | null
+}
+
+export type Hand = Cell | null;
 
 export type Direction = {
     col: number;

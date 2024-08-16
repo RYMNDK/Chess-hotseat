@@ -1,55 +1,70 @@
 import { Cell } from "./cell";
+import {Chessboard} from "./chessType.ts";
 
+// board actions
 // moves that should be rendered in history
-export type RenderAction = MovePieceAction | CastleAction | EnPassantAction;
-
 export type Action =
+    | EmptyAction
     | RenderAction
-    | CheckAction
-    | UndoMoveAction
-    | SetBoardAction
-    | ClearBoardAction;
+    | SetBoardFromFEN;
 
-export interface MovePieceAction {
+export type RenderAction = MovePieceAction | CastleAction | EnPassantAction | PromotionAction;
+
+export type MovePieceAction = MoveOtherAction;
+
+export interface EmptyAction {
+    type: "EMPTY_ACTION";
+    payload: {
+        reason: string;
+    }
+}
+
+export interface MoveOtherAction {
     type: "MOVE_PIECE";
     payload: {
         from: Cell;
-        to: Cell;
-        denote: string;
+        target: Cell;
     };
 }
 
 export interface CastleAction {
     type: "CASTLE_ACTION";
     payload: {
-        isWhite: boolean;
-        side: string;
-        denote: string;
+        target: Cell;
     };
 }
 export interface EnPassantAction {
     type: "EN_PASSANT_ACTION";
     payload: {
-        isWhite: boolean;
         from: Cell;
-        to: Cell;
-        denote: string;
+        target: Cell;
     };
 }
 
-interface CheckAction {
-    type: "CHECK_ACTION";
+export interface PromotionAction {
+    type: "PROMOTION_ACTION";
+    payload: {
+        from: Cell;
+        target: Cell;
+    };
 }
 
-interface UndoMoveAction {
-    type: "UNDO_MOVE";
+// support undo, support clear board
+
+export interface SetBoardFromFEN {
+    type: "SET_BOARD_FROM_FEN";
+    payload: {
+        message: string,
+        FEN: string
+    };
 }
 
-interface SetBoardAction {
-    type: "SET_BOARD";
-    payload: string[][];
-}
+// available move types
+export type AvailableMoves = SetMovesRecalculateAll ;
 
-interface ClearBoardAction {
-    type: "CLEAR_BOARD";
+export interface SetMovesRecalculateAll {
+    type: "SET_MOVES_RECALCULATE_ALL"
+    payload: {
+        gameState: Chessboard;
+    }
 }

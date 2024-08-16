@@ -1,7 +1,6 @@
 .GameAlerts {
-    color: red;
-    min-height: 30;
-    max-width: 30;
+    color: darkblue;
+    min-height: 30px;
 }
 
 .main {

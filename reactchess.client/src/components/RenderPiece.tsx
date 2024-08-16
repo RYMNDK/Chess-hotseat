@@ -1,32 +1,19 @@
 import { Hand } from "../types/chessType";
 import { Cell } from "../types/cell";
 
-import "./RenderPiece.css";
+import {renderMap} from "../services/renderService.ts";
 
-const renderMap = (cellString: string): string => {
-    const map: { [key: string]: string } = {
-        R: "♖",
-        N: "♘",
-        B: "♗",
-        Q: "♕",
-        K: "♔",
-        P: "♙",
-        r: "♜",
-        n: "♞",
-        b: "♝",
-        q: "♛",
-        k: "♚",
-        p: "♟",
-    };
+import "../Styles/RenderPiece.css";
 
-    return map[cellString] || " ";
-};
 
 interface RenderPieceProps {
     location: Cell;
+    piece: string
     hand: Hand;
 }
-const RenderPiece: React.FC<RenderPieceProps> = ({ location, hand }) => {
+
+// todo: pass in piece and isHighlight instead?
+const RenderPiece: React.FC<RenderPieceProps> = ({ location, piece, hand }) => {
     return (
         <div
             id={location.toString()}
@@ -34,7 +21,7 @@ const RenderPiece: React.FC<RenderPieceProps> = ({ location, hand }) => {
                 hand != null && hand.equals(location) ? " highlight" : ""
             }`}
         >
-            {renderMap(location.getPiece())}
+            {renderMap(piece)}
         </div>
     );
 };

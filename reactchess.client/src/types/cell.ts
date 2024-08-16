@@ -1,17 +1,16 @@
-import { Chessboard } from "./chessType";
+import {Chessboard} from "./chessType.ts";
+import {getPiece} from "../services/gameService.ts";
 
 export class Cell {
     private readonly row: number;
     private readonly col: number;
-    private piece: string;
 
     public static readonly letters: string = "abcdefgh";
 
     // map the cell from table to array
-    constructor(col: number, row: number, piece: string) {
+    constructor(col: number, row: number) {
         this.col = col;
         this.row = row;
-        this.piece = piece;
     }
 
     getRow(): number {
@@ -20,39 +19,32 @@ export class Cell {
     getCol(): number {
         return this.col;
     }
-    removePiece(): void {
-        this.piece = " ";
-    }
-    assignPiece(piece: string): void {
-        this.piece = piece;
+
+    getPieceFromBoard(gameState: Chessboard): string {
+        return gameState.board[this.row][this.col];
     }
 
-    getPiece(): string {
-        return this.piece;
-    }
-
-    getPieceFromBoard(board: Chessboard): string {
-        return board.squares[this.row][this.col];
-    }
-
-    canMove(other: Cell, board: Chessboard): boolean {
+    // return true if the other cell is empty or different color piece
+    canMove(gameState: Chessboard, other: Cell): boolean {
         // if the other cell is not on the board then false.
+        // todo: board bound check
         if (other.col < 0 || other.col > 7 || other.row < 0 || other.row > 7) {
             return false;
         }
 
         // moving onto your own piece is not allowed
+        // todo: color review
         const isUpperCase = (char: string) => char >= "A" && char <= "Z";
         const isLowerCase = (char: string) => char >= "a" && char <= "z";
 
+        const otherPiece = getPiece(gameState, other);
+        const thisPiece = this.getPieceFromBoard(gameState);
         return (
-            board.squares[other.row][other.col] === " " ||
+            otherPiece === " " ||
             !(
-                (isUpperCase(this.piece) &&
-                    isUpperCase(board.squares[other.row][other.col])) ||
-                (isLowerCase(this.piece) &&
-                    isLowerCase(board.squares[other.row][other.col]))
-            )
+                (isUpperCase(thisPiece) && isUpperCase(otherPiece) ||
+                (isLowerCase(thisPiece) && isLowerCase(otherPiece))
+            ))
         );
     }
 
@@ -60,16 +52,20 @@ export class Cell {
         return other?.row === this.row && other?.col === this.col;
     }
 
-    // from A1 to H8
+    // from a1 to h8
     toString(): string {
         return `${Cell.letters[this.col]}${8 - this.row}`;
     }
 
-    isRightColor(isWhiteTurn: boolean): boolean {
-        return this.piece >= "A" && this.piece <= "Z"
-            ? isWhiteTurn
-            : !isWhiteTurn;
+    // check if this piece is the right color as the active player
+    isRightColor(gameState:Chessboard, activePlayer: ("w"|"b")): boolean {
+        // todo: color review
+        const thisPiece = this.getPieceFromBoard(gameState);
+        return thisPiece >= "A" && thisPiece <= "Z"
+            ? activePlayer === "w"
+            : activePlayer === "b";
     }
 
     // edge case: Thinking about it.
+
 }
