@@ -3,6 +3,9 @@
 public class Board
 {
     public Guid Id { get; set; }
-    public DateTime MoveNumber { get; set; }
+    public int MoveNumber { get; set; }
     public string FEN { get; set; }
+    public DateTime TimeStamp { get; set; }
+    
+    
 }

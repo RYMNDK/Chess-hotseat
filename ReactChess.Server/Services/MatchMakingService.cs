@@ -15,15 +15,13 @@ public class MatchMakingService
 
     public Guid? GetNextWaitingRoomId()
     {
-        Guid gameId;
-        while (_waitingGameIds.TryDequeue(out gameId))
+        while (_waitingGameIds.TryDequeue(out var gameId))
         {
             if (!_invalidGameList.ContainsKey(gameId))
             {
                 return gameId;
             }
         }
-
         return null;
     }
 }

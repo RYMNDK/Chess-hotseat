@@ -65,6 +65,7 @@ export class Cell {
         return `${Cell.letters[this.col]}${8 - this.row}`;
     }
 
+    // consider moving this to elsewhere
     isRightColor(isWhiteTurn: boolean): boolean {
         return this.piece >= "A" && this.piece <= "Z"
             ? isWhiteTurn

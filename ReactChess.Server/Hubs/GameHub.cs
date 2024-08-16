@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 using ReactChess.Server.Model;
 using ReactChess.Server.Services;
-using System.Collections.Concurrent;
 
 namespace ReactChess.Server.Hubs;
 public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : Hub
@@ -24,18 +24,20 @@ public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : 
         await Groups.AddToGroupAsync(Context.ConnectionId, room.Id.ToString());
         ConnectionGroupMap.TryAdd(Context.ConnectionId, room.Id.ToString());
 
-        if (room.Status == Room.GameStatus.Waiting)
+        switch (room.Status)
         {
-            await Clients.Caller.SendAsync("RoomNotification", "You get a new room, waiting for an opponent.", room);
-        }
-        else if (room.Status == Room.GameStatus.InProgress)
-        {
-            await Clients.Caller.SendAsync("RoomNotification", "You joined a waiting room. Game will start soon", room);
-            await Clients.OthersInGroup(room.Id.ToString()).SendAsync("RoomNotification", "Opponent found! Game will start soon.", room);
+            case Room.GameStatus.Waiting:
+                await Clients.Caller.SendAsync("RoomNotification", "You get a new room, waiting for an opponent.", room);
+                break;
+            case Room.GameStatus.InProgress:
+                await Clients.Caller.SendAsync("RoomNotification", "You joined a waiting room. Game will start soon", room);
+                await Clients.OthersInGroup(room.Id.ToString()).SendAsync("RoomNotification", "Opponent found! Game will start soon.", room);
 
-            await Clients.Group(room.Id.ToString()).SendAsync("UpdateBoard",
-                "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-            );
+                // send them new board (as action)
+                await Clients.Group(room.Id.ToString()).SendAsync("UpdateBoard",
+                    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+                );
+                break;
         }
 
         await base.OnConnectedAsync();
@@ -52,6 +54,20 @@ public class GameHub(ILogger<GameHub> logger, GameManagerService gameManager) : 
         logger.LogInformation("message from frontend " + message);
         
         await Clients.OthersInGroup(ConnectionGroupMap[Context.ConnectionId]).SendAsync("UpdateBoard", message);
+        
+        return message;
+    }
+    
+    // get action from the frontend, get the boardid based on connectionid, validate FEN and action
+    // then return new FEN and action from the backend
+    public async Task<string> OnReceivingAction(string message)
+    {
+        var cid = Context.ConnectionId;
+        var bid = ConnectionGroupMap[cid];
+        
+        // send message to everyone
+        await Clients.Group(bid).SendAsync("message", "Message from backend");
+        await Clients.Caller.SendAsync("message", "Message from backend");
         
         return message;
     }

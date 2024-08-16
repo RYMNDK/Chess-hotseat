@@ -6,13 +6,12 @@ using ReactChess.Server.Services;
 namespace ReactChess.Server.Controllers;
 
 // http endpoint is for debugging with swagger
+// use base controller 
 
-[ApiController]
-[Route("api/[controller]")]
-public class RoomController(
-    ILogger<RoomController> logger,
+public class RoomBaseController (
+    ILogger<RoomBaseController> logger,
     IHubContext<GameHub> gameHub,
-    MatchMakingService mms) : ControllerBase
+    MatchMakingService mms) : BaseController(logger)
 {
 
     // GET: api/room/<ChessController>

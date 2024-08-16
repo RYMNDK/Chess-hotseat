@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ReactChess.Server.Services;
 
-public class GameManagerService(ILogger<GameManagerService> logger, DataContext context, MatchMakingService matchMaker)
+public class GameManagerService(ILogger<GameManagerService> logger, MatchMakingService matchMaker, GameService gameService, DataContext context)
 {
     private async Task<Room> CreateNewRoom(string playerName, string playerConnectionId, Guid roomId)
     {
@@ -33,7 +33,7 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
     {
         Room room = await context.Rooms.FirstOrDefaultAsync(x => x.Id == roomId)
             ?? await CreateNewRoom(playerName, playerConnectionId, roomId);
-
+        
         if (room.WhiteConnectionId == "")
         {
             room.WhiteName = playerName;
@@ -45,8 +45,10 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
             room.BlackConnectionId = playerConnectionId;
         }
         room.Status = Room.GameStatus.InProgress;
+        // add the game in active games 
+        
         await context.SaveChangesAsync();
-
+        
         return room;
     }
 
@@ -77,17 +79,5 @@ public class GameManagerService(ILogger<GameManagerService> logger, DataContext 
         }
         await context.SaveChangesAsync();
     }
-
-    public Board CreateBoard(Guid boardId)
-    {
-        Board newGameBoard = new()
-        {
-            Id = boardId,
-            FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-            MoveNumber = DateTime.Now
-        };
-
-        return newGameBoard;
-    }
-
+    
 }

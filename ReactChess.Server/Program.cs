@@ -28,8 +28,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<MatchMakingService>();
 builder.Services.AddScoped<GameManagerService>();
+builder.Services.AddScoped<ArbiterService>();
+builder.Services.AddSingleton<GameService>();
+builder.Services.AddSingleton<MatchMakingService>();
 
 builder.Services.AddDbContext<DataContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
