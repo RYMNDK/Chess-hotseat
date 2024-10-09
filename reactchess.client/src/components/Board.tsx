@@ -41,7 +41,6 @@ const Board: React.FC<BoardProps> = ({
             !hand && target.getPieceFromBoard(gameState) !== " " &&
             target.isRightColor(gameState ,gameState.activeColor)
         ) {
-
             // all move -> available moves -> legal move
             setMoves(illegalMoveFilter(gameState, target, moveHelper, getAvailableMoves(gameState, target, moveHelper)));
             setHand(target);

@@ -50,6 +50,7 @@ test("test recalculateBoardHelper", () => {
     });
 });
 
+// more descriptive test names
 test("test getAllMoves", () => {
     // arrange
     const gameStateFEN: string = "k7/8/8/8/8/8/8/7K w - - 0 1";
@@ -75,3 +76,5 @@ test("test getCell", () => {
     // assert
     expect(result).toStrictEqual(new Cell(4, 5));
 });
+
+// todo: end to end testing

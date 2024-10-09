@@ -45,7 +45,8 @@ const Game: React.FC<GameProp> = ({
         gameState.fullmoveNumber
     );
 
-    // action queue (ask about concurrency)
+    // todo: action queue lock moves when its not your turn.
+    // move validation backend
     const [action, setAction] = useState<Action>({
         type:"EMPTY_ACTION",
         payload: {reason: "initial state"}}
@@ -59,6 +60,8 @@ const Game: React.FC<GameProp> = ({
     const onBoardMove = (action: RenderAction ) => {
         setAction(action);
     };
+
+    // todo: refactor further, then optimize calculation
 
     const [moveHelper, setMoveHelper] = useState({
         moves: {}, // Initially no moves recorded
@@ -103,6 +106,10 @@ const Game: React.FC<GameProp> = ({
     // render board states
     useEffect(
         () => {
+            // todo: pack this to a class
+            // for backend
+            // what are the components?
+
             setBoard(gameState.board);
             setIsWhiteTurn(gameState.activeColor === "w");
             setCastleAvailable(gameState.castlingAvailability);
@@ -113,7 +120,6 @@ const Game: React.FC<GameProp> = ({
             );
             setHalfMove(gameState.halfmoveClock);
             setFullMove(gameState.fullmoveNumber);
-
         },
         [gameState]
     );
@@ -141,6 +147,8 @@ const Game: React.FC<GameProp> = ({
                 <h2 className="GameAlerts">{message}</h2>
                 {/* rest of the buttons */}
                 <button onClick={() => printAllAvailableMoves()}>Show</button>
+
+                {/*keep one */}
                 <p>Current FEN: {genFEN({
                     board: gameBoard,
                     activeColor: isWhiteTurn ? "w" : "b",
@@ -150,6 +158,7 @@ const Game: React.FC<GameProp> = ({
                     halfmoveClock: Number(halfMove),
                     fullmoveNumber: Number(fullMove)
                 })}</p>
+                <p>Current FEN: {genFEN(gameState)}</p>
 
                 {/* <MoveHistory moveList={renderActions} /> */}
             </div>
